@@ -1,0 +1,14 @@
+import { z } from 'zod';
+import { OWNER_STATUSES, ROLES, USER_STATUSES } from '../constants/roles';
+import { paginationQuerySchema, phoneVnSchema } from './common.schema';
+import { passwordSchema } from './auth.schema';
+export const updateProfileSchema = z.object({ fullName: z.string().trim().min(2).max(100).optional(), phone: phoneVnSchema.nullable().optional().or(z.literal('')) }).refine(value => Object.keys(value).length > 0);
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+export const changePasswordSchema = z.object({ currentPassword: z.string().min(1), newPassword: passwordSchema });
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export const adminUserQuerySchema = paginationQuerySchema.extend({ q: z.string().trim().optional(), role: z.enum(ROLES).optional(), status: z.enum(USER_STATUSES).optional(), ownerStatus: z.enum(OWNER_STATUSES).optional(), sort: z.enum(['newest', 'oldest', 'name']).default('newest') });
+export type AdminUserQuery = z.infer<typeof adminUserQuerySchema>;
+export const updateUserStatusSchema = z.object({ status: z.enum(USER_STATUSES) });
+export type UpdateUserStatusInput = z.infer<typeof updateUserStatusSchema>;
+export const ownerApprovalSchema = z.object({ decision: z.enum(['APPROVED', 'REJECTED']), note: z.string().trim().min(3).max(300).optional() }).refine(value => value.decision !== 'REJECTED' || !!value.note, { path: ['note'], message: 'Cần nêu lý do từ chối' });
+export type OwnerApprovalInput = z.infer<typeof ownerApprovalSchema>;

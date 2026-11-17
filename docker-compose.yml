@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sango-postgres
+    environment:
+      POSTGRES_USER: sango
+      POSTGRES_PASSWORD: sango
+      POSTGRES_DB: sango
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: sango-mailpit
+    ports:
+      - '1025:1025'
+      - '8025:8025'
+volumes:
+  pgdata:

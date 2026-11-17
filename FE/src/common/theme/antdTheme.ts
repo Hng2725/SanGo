@@ -1,0 +1,77 @@
+import { theme, type ThemeConfig } from 'antd';
+import { palette, type ThemeMode } from './tokens';
+
+export function getAntdTheme(mode: ThemeMode, reducedMotion = false): ThemeConfig {
+  const color = palette[mode];
+  return {
+    algorithm: mode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
+    cssVar: { prefix: 'sg' },
+    token: {
+      colorPrimary: color.primary,
+      colorLink: color.primary,
+      colorSuccess: palette.light.primary,
+      colorWarning: palette.warning,
+      colorError: palette.error,
+      colorInfo: palette.info,
+      colorText: color.ink,
+      colorTextSecondary: color.stone,
+      colorBorder: color.line,
+      colorBorderSecondary: color.line,
+      colorBgLayout: color.base,
+      colorBgContainer: color.surface,
+      fontFamily: '"Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+      fontSize: 14,
+      borderRadius: 8,
+      borderRadiusSM: 6,
+      borderRadiusLG: 12,
+      controlHeight: 38,
+      controlHeightLG: 46,
+      boxShadowTertiary: 'none',
+      motion: !reducedMotion,
+      motionDurationMid: '0.2s',
+      motionEaseOut: 'cubic-bezier(0.22, 1, 0.36, 1)',
+    },
+    components: {
+      Layout: {
+        headerBg: color.surface,
+        siderBg: color.night,
+        bodyBg: color.base,
+        headerHeight: 60,
+        headerPadding: '0 28px',
+      },
+      Menu: {
+        darkItemBg: color.night,
+        darkSubMenuItemBg: color.night,
+        darkItemColor: 'rgba(255,255,255,0.74)',
+        darkItemHoverBg: 'rgba(255,255,255,0.06)',
+        darkItemHoverColor: '#FFFFFF',
+        darkItemSelectedBg: 'rgba(255,255,255,0.10)',
+        darkItemSelectedColor: '#FFFFFF',
+        itemBorderRadius: 8,
+        itemMarginInline: 10,
+        itemHeight: 42,
+        activeBarBorderWidth: 0,
+        itemBg: 'transparent',
+        itemSelectedBg: mode === 'dark' ? 'rgba(58,163,111,0.14)' : 'rgba(30,122,79,0.08)',
+        itemSelectedColor: color.primary,
+      },
+      Button: {
+        primaryShadow: 'none',
+        defaultShadow: 'none',
+        dangerShadow: 'none',
+        fontWeight: 500,
+      },
+      Card: { headerFontSize: 16, paddingLG: 24 },
+      Table: {
+        headerBg: color.base,
+        headerColor: color.stone,
+        headerSplitColor: 'transparent',
+        rowHoverBg: mode === 'dark' ? '#1B2520' : '#F7FAF8',
+        cellPaddingBlock: 14,
+      },
+      Modal: { borderRadiusLG: 14, titleFontSize: 18 },
+      Segmented: { itemSelectedBg: color.surface },
+      Statistic: { contentFontSize: 28 },
+    },
+  };
+}

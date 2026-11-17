@@ -1,0 +1,310 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ================= ENUMS (không đổi tên giá trị) =================
+enum Role {
+  CUSTOMER
+  OWNER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  LOCKED
+}
+
+enum OwnerStatus {
+  NONE
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum Sport {
+  FOOTBALL
+  BADMINTON
+  PICKLEBALL
+  TENNIS
+  BASKETBALL
+  VOLLEYBALL
+}
+
+enum VenueStatus {
+  ACTIVE
+  HIDDEN
+}
+
+enum DayType {
+  WEEKDAY
+  WEEKEND
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  REJECTED
+}
+
+enum RecurringStatus {
+  ACTIVE
+  CANCELLED
+}
+
+enum ComplaintStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  REJECTED
+}
+
+// ================= [OWNER: Hưng] =================
+model User {
+  id           String      @id @default(cuid())
+  email        String      @unique
+  passwordHash String
+  fullName     String
+  phone        String?
+  role         Role        @default(CUSTOMER)
+  status       UserStatus  @default(ACTIVE)
+  ownerStatus  OwnerStatus @default(NONE)
+  ownerNote    String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  venues            Venue[]
+  bookings          Booking[]
+  holds             BookingHold[]
+  recurringSeries   RecurringSeries[]
+  reviews           Review[]
+  complaints        Complaint[]        @relation("ComplaintAuthor")
+  handledComplaints Complaint[]        @relation("ComplaintHandler")
+  maintenanceBlocks MaintenanceBlock[]
+
+  @@index([role, status])
+}
+
+// ================= [OWNER: Lâm] =================
+model Venue {
+  id                String      @id @default(cuid())
+  ownerId           String
+  owner             User        @relation(fields: [ownerId], references: [id])
+  name              String
+  slug              String      @unique
+  description       String?
+  address           String
+  district          String
+  city              String
+  latitude          Float?
+  longitude         Float?
+  phone             String?
+  imageUrls         String[]
+  cancelBeforeHours Int         @default(2)
+  status            VenueStatus @default(ACTIVE)
+  avgRating         Float       @default(0) // cập nhật bởi Reviews (Dương)
+  reviewCount       Int         @default(0) // cập nhật bởi Reviews (Dương)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  courts       Court[]
+  openingHours OpeningHour[]
+  reviews      Review[]
+  complaints   Complaint[]
+
+  @@index([city, district])
+  @@index([ownerId])
+}
+
+model OpeningHour {
+  id          String  @id @default(cuid())
+  venueId     String
+  venue       Venue   @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  dayOfWeek   Int // 0=CN, 1=T2, ..., 6=T7
+  isClosed    Boolean @default(false)
+  openMinute  Int // bội số 60, 0..1380
+  closeMinute Int // bội số 60, openMinute < closeMinute <= 1800 (qua nửa đêm nếu > 1440)
+
+  @@unique([venueId, dayOfWeek])
+}
+
+model Court {
+  id               String   @id @default(cuid())
+  venueId          String
+  venue            Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  name             String
+  sport            Sport
+  basePricePerHour Int
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  priceRules        PriceRule[]
+  maintenanceBlocks MaintenanceBlock[]
+  bookings          Booking[]
+  slotLocks         SlotLock[]
+  holds             BookingHold[]
+  recurringSeries   RecurringSeries[]
+
+  @@unique([venueId, name])
+  @@index([sport])
+}
+
+model PriceRule {
+  id           String  @id @default(cuid())
+  courtId      String
+  court        Court   @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  dayType      DayType
+  startMinute  Int // 0..1380, bội số 60
+  endMinute    Int // startMinute < endMinute <= 1440, bội số 60
+  pricePerHour Int
+  label        String?
+
+  @@index([courtId, dayType])
+}
+
+model MaintenanceBlock {
+  id          String   @id @default(cuid())
+  courtId     String
+  court       Court    @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  startAt     DateTime @db.Timestamptz(3)
+  endAt       DateTime @db.Timestamptz(3)
+  reason      String?
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@index([courtId, startAt])
+}
+
+// ================= [OWNER: Hiếu] =================
+model Booking {
+  id                String           @id @default(cuid())
+  code              String           @unique
+  customerId        String
+  customer          User             @relation(fields: [customerId], references: [id])
+  courtId           String
+  court             Court            @relation(fields: [courtId], references: [id])
+  startAt           DateTime         @db.Timestamptz(3)
+  endAt             DateTime         @db.Timestamptz(3)
+  totalPrice        Int
+  priceBreakdown    Json // PriceBreakdownItem[]
+  status            BookingStatus    @default(PENDING) // chuyển trạng thái: Dương
+  contactPhone      String
+  note              String?
+  cancelReason      String?
+  rejectReason      String?
+  confirmedAt       DateTime?
+  rejectedAt        DateTime?
+  cancelledAt       DateTime?
+  completedAt       DateTime?
+  recurringSeriesId String?
+  recurringSeries   RecurringSeries? @relation(fields: [recurringSeriesId], references: [id])
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  slotLocks  SlotLock[]
+  review     Review?
+  complaints Complaint[]
+
+  @@index([courtId, startAt])
+  @@index([customerId, createdAt])
+  @@index([status, endAt])
+}
+
+model SlotLock {
+  id        String       @id @default(cuid())
+  courtId   String
+  court     Court        @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  startAt   DateTime     @db.Timestamptz(3)
+  bookingId String?
+  booking   Booking?     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  holdId    String?
+  hold      BookingHold? @relation(fields: [holdId], references: [id], onDelete: Cascade)
+  expiresAt DateTime?    @db.Timestamptz(3)
+  createdAt DateTime     @default(now())
+
+  @@unique([courtId, startAt]) // <<< RÀNG BUỘC CHỐNG ĐẶT TRÙNG
+  @@index([bookingId])
+  @@index([holdId])
+  @@index([expiresAt])
+}
+
+model BookingHold {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courtId   String
+  court     Court    @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  startAt   DateTime @db.Timestamptz(3)
+  endAt     DateTime @db.Timestamptz(3)
+  expiresAt DateTime @db.Timestamptz(3)
+  createdAt DateTime @default(now())
+
+  slotLocks SlotLock[]
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// ================= [OWNER: Dương] =================
+model RecurringSeries {
+  id          String          @id @default(cuid())
+  customerId  String
+  customer    User            @relation(fields: [customerId], references: [id])
+  courtId     String
+  court       Court           @relation(fields: [courtId], references: [id])
+  dayOfWeek   Int
+  startMinute Int
+  slotCount   Int
+  firstDate   String // 'YYYY-MM-DD' (giờ VN)
+  weeks       Int
+  status      RecurringStatus @default(ACTIVE)
+  createdAt   DateTime        @default(now())
+
+  bookings Booking[]
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  bookingId  String   @unique
+  booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  venueId    String
+  venue      Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  rating     Int
+  comment    String?
+  ownerReply String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([venueId, createdAt])
+}
+
+model Complaint {
+  id            String          @id @default(cuid())
+  authorId      String
+  author        User            @relation("ComplaintAuthor", fields: [authorId], references: [id])
+  venueId       String
+  venue         Venue           @relation(fields: [venueId], references: [id])
+  bookingId     String?
+  booking       Booking?        @relation(fields: [bookingId], references: [id])
+  title         String
+  content       String
+  status        ComplaintStatus @default(OPEN)
+  adminResponse String?
+  handledById   String?
+  handledBy     User?           @relation("ComplaintHandler", fields: [handledById], references: [id])
+  resolvedAt    DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([status, createdAt])
+}

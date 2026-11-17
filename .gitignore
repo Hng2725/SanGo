@@ -1,0 +1,59 @@
+# Dependencies and package-manager caches
+node_modules/
+.npm/
+.pnpm-store/
+
+# Build output and tool caches
+dist/
+build/
+*.tsbuildinfo
+.cache/
+.vite/
+.vite-temp/
+.vitest/
+.eslintcache
+.stylelintcache
+.prettiercache
+
+# Test output (keep source tests and report screenshots in docs/)
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# Local environment and private credentials
+.env
+.env.*
+!.env.example
+.npmrc.local
+*.pem
+*.key
+*.p12
+*.pfx
+.aws/
+.ssh/
+
+# Runtime files, uploads, and local deployment settings
+*.log
+*.pid
+*.pid.lock
+/BE/uploads/
+.vercel/
+
+# Local scratch files and database files
+/tmp/
+/temp/
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+
+# Operating-system and editor files
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+*.swp
+*.swo
+*~
+**/.vscode/*
+!**/.vscode/extensions.json

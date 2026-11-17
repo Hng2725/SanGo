@@ -1,0 +1,20 @@
+{
+  "name": "@sango/shared",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch --preserveWatchOutput",
+    "test": "vitest run --pool=threads --maxWorkers=1 --no-file-parallelism",
+    "test:cov": "vitest run --coverage --pool=threads --maxWorkers=1 --no-file-parallelism"
+  },
+  "dependencies": {
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^5.1.0",
+    "vitest": "^5.1.0"
+  }
+}

@@ -1,0 +1,11 @@
+export const BOOKING_STATUSES = ['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED', 'REJECTED'] as const;
+export type BookingStatus = (typeof BOOKING_STATUSES)[number];
+export const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = { PENDING: 'Chờ xác nhận', CONFIRMED: 'Đã xác nhận', COMPLETED: 'Hoàn thành', CANCELLED: 'Đã hủy', REJECTED: 'Từ chối' };
+export const DAY_TYPES = ['WEEKDAY', 'WEEKEND'] as const;
+export type DayType = (typeof DAY_TYPES)[number];
+export const VENUE_STATUSES = ['ACTIVE', 'HIDDEN'] as const;
+export type VenueStatus = (typeof VENUE_STATUSES)[number];
+export const COMPLAINT_STATUSES = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'REJECTED'] as const;
+export type ComplaintStatus = (typeof COMPLAINT_STATUSES)[number];
+export const RECURRING_STATUSES = ['ACTIVE', 'CANCELLED'] as const;
+export type RecurringStatus = (typeof RECURRING_STATUSES)[number];

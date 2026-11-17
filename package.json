@@ -1,0 +1,29 @@
+{
+  "name": "sango",
+  "private": true,
+  "workspaces": [
+    "shared",
+    "BE",
+    "FE"
+  ],
+  "scripts": {
+    "build:shared": "npm run build -w @sango/shared",
+    "dev": "npm run build:shared && concurrently -k -n shared,be,fe -c gray,blue,green \"npm run dev -w @sango/shared\" \"npm run start:dev -w @sango/be\" \"npm run dev -w @sango/fe\"",
+    "build": "npm run build:shared && npm run build -w @sango/be && npm run build -w @sango/fe",
+    "test": "npm run build:shared && npm run test -w @sango/shared && npm run test -w @sango/be && npm run test -w @sango/fe",
+    "test:cov": "npm run build:shared && npm run test:cov -w @sango/shared && npm run test:cov -w @sango/be && npm run test:cov -w @sango/fe",
+    "lint": "npm run lint -w @sango/be && npm run lint -w @sango/fe",
+    "format": "prettier --write \"{shared,BE,FE}/src/**/*.{ts,tsx,css}\"",
+    "db:migrate": "npm run prisma:migrate -w @sango/be",
+    "db:seed": "npm run prisma:seed -w @sango/be",
+    "db:reset": "npm run prisma:reset -w @sango/be"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.5",
+    "prettier": "^3.10.1",
+    "typescript": "~5.9.3"
+  }
+}
