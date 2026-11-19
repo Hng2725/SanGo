@@ -7,7 +7,7 @@ SanGo là ứng dụng đặt lịch sân thể thao theo giờ. Monorepo gồm 
 Yêu cầu Node.js 22, npm 10 và Docker Desktop.
 
 ```bash
-npm install
+npm ci
 docker compose up -d
 cp BE/.env.example BE/.env
 cp FE/.env.example FE/.env
@@ -19,6 +19,8 @@ npm run dev
 Lệnh `npm run dev` in sẵn link Website, API health và Mailpit trong terminal để mở nhanh.
 
 Mở giao diện tại `http://localhost:5173`, API health tại `http://localhost:3000/api/health`, hộp thư Mailpit tại `http://localhost:8025`.
+
+Khi clone hoặc cập nhật code, chạy `npm ci` tại thư mục gốc `SanGo` để cài đúng phiên bản trong `package-lock.json` cho cả FE, BE và shared. Menu tài khoản, ngôn ngữ và thao tác người dùng hỗ trợ rê chuột, bấm/chạm, hoặc dùng Tab rồi Enter/Space.
 
 | Tài khoản | Mật khẩu | Vai trò |
 |---|---|---|

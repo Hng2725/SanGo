@@ -246,7 +246,7 @@ export default function AdminUsersPage() {
             </>
           )}
           {user.role !== 'ADMIN' && (
-            <Dropdown menu={{ items: actions(user) }}>
+            <Dropdown trigger={['hover', 'click']} menu={{ items: actions(user) }}>
               <Button type="text" icon={<MoreOutlined />} aria-label="Thao tác khác" />
             </Dropdown>
           )}
@@ -374,7 +374,11 @@ export default function AdminUsersPage() {
             <List.Item
               className={user.ownerStatus === 'PENDING' ? 'pending-user-row' : ''}
               actions={[
-                <Dropdown key="actions" menu={{ items: actions(user) }}>
+                <Dropdown
+                  key="actions"
+                  trigger={['hover', 'click']}
+                  menu={{ items: actions(user) }}
+                >
                   <Button type="text" icon={<MoreOutlined />} aria-label="Thao tác khác" />
                 </Dropdown>,
               ]}

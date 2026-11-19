@@ -91,6 +91,7 @@ export function HeaderActions({ dashboard = false }: { dashboard?: boolean }) {
   return (
     <Space className={`header-actions ${dashboard ? 'header-actions-dashboard' : ''}`} size={8}>
       <Dropdown
+        trigger={['hover', 'click']}
         menu={{
           items: languageItems,
           onClick: ({ key }) => setLanguage(key === 'en' ? 'en' : 'vi'),
@@ -111,7 +112,7 @@ export function HeaderActions({ dashboard = false }: { dashboard?: boolean }) {
         />
       </Tooltip>
       {user ? (
-        <Dropdown menu={{ items: userItems }} placement="bottomRight">
+        <Dropdown trigger={['hover', 'click']} menu={{ items: userItems }} placement="bottomRight">
           <Button
             type="text"
             className="header-user-button"
