@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { seedUsers } from './seed/users.seed';
+import { seedVenues } from './seed/venues.seed';
 import { seedAdminDemo } from './seed/admin-demo.seed';
 const prisma = new PrismaClient();
 async function main(): Promise<void> {
@@ -18,8 +19,8 @@ async function main(): Promise<void> {
     await tx.user.deleteMany();
   });
   await seedUsers(prisma);
+  await seedVenues(prisma);
   await seedAdminDemo(prisma);
-  // TODO(Lâm): gọi seedVenues(prisma) sau khi module sân được merge.
   // TODO(Dương): gọi seedBookings(prisma), seedReviewsAndComplaints(prisma) sau khi module đơn được merge.
 }
 main()

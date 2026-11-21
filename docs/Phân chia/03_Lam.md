@@ -77,7 +77,7 @@ export function calculatePrice(pricing: PricingInput, startAt: Date, endAt: Date
 
 Quy tắc đúng mục 6.3 tổng quan (dùng `toVnParts`, `isWeekendDay`, `enumerateSlotStarts` của shared).
 
-- [ ] Test `pricing.calculator.spec.ts` **(≥ 10 case, đủ trường hợp biên)**:
+- [x] Test `pricing.calculator.spec.ts` **(≥ 10 case, đủ trường hợp biên)**:
   1. Ngày thường, không có rule → giá base.
   2. Ngày thường, khung nằm trong giờ vàng 17:00–21:00 → giá giờ vàng + label.
   3. Đơn 16:00–18:00 **cắt qua mốc bắt đầu giờ vàng** → 1 khung base + 1 khung vàng.
@@ -89,7 +89,7 @@ Quy tắc đúng mục 6.3 tổng quan (dùng `toVnParts`, `isWeekendDay`, `enum
   9. Thời điểm UTC 17:00 = 00:00 giờ VN hôm sau → xác định đúng ngày (không lệch múi giờ).
   10. `endAt <= startAt` → ném lỗi; startAt lệch phút (10:30) → ném lỗi.
   11. Đơn 6 khung → `total` = tổng breakdown.
-- [ ] Test schema `pricing.schema.test.ts` (shared, Vitest): rule chồng nhau báo lỗi đúng path; 2 dayType khác nhau cùng giờ thì hợp lệ; giá không chia hết 1.000 bị từ chối.
+- [x] Test schema `pricing.schema.test.ts` (shared, Vitest): rule chồng nhau báo lỗi đúng path; 2 dayType khác nhau cùng giờ thì hợp lệ; giá không chia hết 1.000 bị từ chối.
 
 ### L1 – Quản lý cụm sân, giờ mở cửa, sân con (merge sớm)
 
@@ -109,75 +109,75 @@ Quy tắc đúng mục 6.3 tổng quan (dùng `toVnParts`, `isWeekendDay`, `enum
 - `createCourtSchema { name 1..50; sport; basePricePerHour (như pricing) }`, `updateCourtSchema = createCourtSchema.partial().extend({ isActive: z.boolean().optional() })`.
 
 **BE `modules/venues`:**
-- [ ] `venues.service.ts`:
+- [x] `venues.service.ts`:
   - `assertVenueOwner(venueId, ownerId)` → không tồn tại 404, khác chủ 403 (**kiểm tra quyền ở tầng dữ liệu**) – export cho Dương dùng.
   - `listMine(ownerId)`, `getMine(id, ownerId)`, `create(ownerId, input)` (sinh `slug` từ tên bỏ dấu tiếng Việt + hậu tố ngắn nếu trùng; tạo 7 OpeningHour mặc định 06:00–22:00 trong cùng transaction), `update`, `hide` (status HIDDEN).
   - `replaceOpeningHours(venueId, ownerId, input)` – transaction xóa/ghi lại 7 dòng (hoặc upsert).
   - `getOpeningHours(venueId): Promise<OpeningHourDto[]>` – Hiếu dùng.
   - `getPublicBySlug(slug)` – chỉ `ACTIVE`, court `isActive`, kèm priceRules → `VenueDetailDto`; không có → 404.
   - `getLocations()` – distinct city/district của venue ACTIVE → `LocationDto[]`.
-- [ ] `venues.mapper.ts`.
-- [ ] Controllers: `OwnerVenuesController` (`@Roles('OWNER')`, prefix `owner/venues`), `VenuesPublicController` (`@Public()`, `GET venues/:slug`), `MetaController` (`@Public()`, `GET meta/locations`). Endpoint đúng bảng 8.3 tổng quan.
+- [x] `venues.mapper.ts`.
+- [x] Controllers: `OwnerVenuesController` (`@Roles('OWNER')`, prefix `owner/venues`), `VenuesPublicController` (`@Public()`, `GET venues/:slug`), `MetaController` (`@Public()`, `GET meta/locations`). Endpoint đúng bảng 8.3 tổng quan.
 
 **BE `modules/courts`:**
-- [ ] `courts.service.ts`: `create(venueId, ownerId, input)` (tên trùng trong venue → 409 `CONFLICT`), `update(courtId, ownerId, input)`, `remove(courtId, ownerId)` (có booking → chỉ `isActive=false`, trả 204), `getCourtForOwner(courtId, ownerId)` (404/403 – export cho Hiếu/Dương), `getActiveCourt(courtId)` (kèm venue).
-- [ ] Controller `owner/venues/:id/courts` (POST) và `owner/courts/:courtId` (PATCH, DELETE).
+- [x] `courts.service.ts`: `create(venueId, ownerId, input)` (tên trùng trong venue → 409 `CONFLICT`), `update(courtId, ownerId, input)`, `remove(courtId, ownerId)` (có booking → chỉ `isActive=false`, trả 204), `getCourtForOwner(courtId, ownerId)` (404/403 – export cho Hiếu/Dương), `getActiveCourt(courtId)` (kèm venue).
+- [x] Controller `owner/venues/:id/courts` (POST) và `owner/courts/:courtId` (PATCH, DELETE).
 
 **DB seed `prisma/seed/venues.seed.ts`** – `seedVenues(prisma, { ownerIds })`:
-- [ ] ≥ 8 cụm sân thật tế (TP.HCM: Quận 1, Quận 7, Bình Thạnh, Tân Bình, TP Thủ Đức; Hà Nội: Cầu Giấy, Đống Đa, Hai Bà Trưng), có tọa độ thực, ảnh `https://picsum.photos/seed/<slug>/800/500`, mỗi cụm 3–4 sân con nhiều môn (≥ 24 sân), giờ mở cửa khác nhau (**ít nhất 1 cụm mở 18:00–02:00 cuối tuần để demo qua nửa đêm**, 1 cụm nghỉ thứ 2), bảng giá: giờ vàng 17:00–21:00 ngày thường, cuối tuần cả ngày cao hơn, có label. Phần lớn thuộc `owner@sango.vn`, 2 cụm thuộc `owner2@sango.vn`.
-- [ ] Gọi trong `seed.ts` sau `seedUsers`.
+- [x] ≥ 8 cụm sân thật tế (TP.HCM: Quận 1, Quận 7, Bình Thạnh, Tân Bình, TP Thủ Đức; Hà Nội: Cầu Giấy, Đống Đa, Hai Bà Trưng), có tọa độ thực, ảnh `https://picsum.photos/seed/<slug>/800/500`, mỗi cụm 3–4 sân con nhiều môn (≥ 24 sân), giờ mở cửa khác nhau (**ít nhất 1 cụm mở 18:00–02:00 cuối tuần để demo qua nửa đêm**, 1 cụm nghỉ thứ 2), bảng giá: giờ vàng 17:00–21:00 ngày thường, cuối tuần cả ngày cao hơn, có label. Phần lớn thuộc `owner@sango.vn`, 2 cụm thuộc `owner2@sango.vn`.
+- [x] Gọi trong `seed.ts` sau `seedUsers`.
 
 **FE `features/owner-venues`:**
-- [ ] `api/ownerVenueApi.ts`: list/get/create/update/hide venue, replace opening hours, create/update/delete court (tags `OwnerVenue`, `Court`; invalidate cả `Availability`).
-- [ ] `pages/OwnerVenuesPage.tsx` (`/owner/venues`): thẻ cụm sân (ảnh, tên, số sân, trạng thái), nút "Thêm cụm sân", EmptyState hướng dẫn khi chưa có.
-- [ ] `pages/VenueEditorPage.tsx` (`/owner/venues/new` và `/owner/venues/:id`): **Tabs**: Thông tin | Sân con | Giờ mở cửa | Vị trí (tab Vị trí dùng `LocationPicker` – L6).
+- [x] `api/ownerVenueApi.ts`: list/get/create/update/hide venue, replace opening hours, create/update/delete court (tags `OwnerVenue`, `Court`; invalidate cả `Availability`).
+- [x] `pages/OwnerVenuesPage.tsx` (`/owner/venues`): thẻ cụm sân (ảnh, tên, số sân, trạng thái), nút "Thêm cụm sân", EmptyState hướng dẫn khi chưa có.
+- [x] `pages/VenueEditorPage.tsx` (`/owner/venues/new` và `/owner/venues/:id`): **Tabs**: Thông tin | Sân con | Giờ mở cửa | Vị trí (tab Vị trí dùng `LocationPicker` – L6).
   - `VenueInfoForm`: RHF + `zodResolver(createVenueSchema)`; `imageUrls` dùng `useFieldArray` + ảnh xem trước; `cancelBeforeHours` có giải thích chính sách hủy.
   - `CourtsManager`: bảng/thẻ sân con, thêm/sửa inline (modal), bật/tắt hoạt động, nút tới "Bảng giá" và "Bảo trì" của từng sân.
   - `OpeningHoursForm`: 7 dòng (Thứ 2 → CN), switch "Nghỉ", Select giờ mở (00:00–23:00), Select giờ đóng (01:00 → 06:00 (+1)) hiển thị bằng `formatMinute`, nút "Áp dụng cho cả tuần"; lỗi qua nửa đêm hiển thị đúng dòng.
-- [ ] Thêm mục "Cụm sân" vào menu OwnerLayout.
+- [x] Thêm mục "Cụm sân" vào menu OwnerLayout.
 
 ### L2 – Cấu hình bảng giá (form phức tạp)
 
 **BE `modules/pricing`:**
-- [ ] `pricing.service.ts`:
+- [x] `pricing.service.ts`:
   - `getCourtPricing(courtIds: string[], tx?): Promise<Map<string, PricingInput>>` – Hiếu dùng cho lưới.
   - `quote(courtId, startAt, endAt, tx?): Promise<PriceQuote>` – Hiếu dùng khi tạo đơn (gọi `calculatePrice`, đổi `InvalidPriceRangeError` → 400 `VALIDATION_ERROR`).
   - `getForOwner(courtId, ownerId)`, `replaceForOwner(courtId, ownerId, input: PricingConfigInput)` (transaction: cập nhật `basePricePerHour`, `deleteMany` rule cũ, `createMany` rule mới), `copyToCourts(sourceCourtId, ownerId, targetCourtIds)` (mọi target phải thuộc cùng chủ – không thì 403).
-- [ ] Controllers: `OwnerPricingController` (`owner/courts/:courtId/pricing` GET/PUT, `.../copy` POST) và `PricingPublicController` (`POST pricing/quote` `@Public()`, body `{ courtId, startAt, endAt }`).
-- [ ] Test `pricing.service.spec.ts`: replace khi không sở hữu → 403; copy sang court của chủ khác → 403.
+- [x] Controllers: `OwnerPricingController` (`owner/courts/:courtId/pricing` GET/PUT, `.../copy` POST) và `PricingPublicController` (`POST pricing/quote` `@Public()`, body `{ courtId, startAt, endAt }`).
+- [x] Test `pricing.service.spec.ts`: replace khi không sở hữu → 403; copy sang court của chủ khác → 403.
 
 **FE `features/pricing`:**
-- [ ] `api/pricingApi.ts`: `getPricing`, `updatePricing`, `copyPricing`, `quotePrice` (mutation hoặc query).
-- [ ] `pages/CourtPricingPage.tsx` (`/owner/courts/:courtId/pricing`, title "Bảng giá – <tên sân>"):
+- [x] `api/pricingApi.ts`: `getPricing`, `updatePricing`, `copyPricing`, `quotePrice` (mutation hoặc query).
+- [x] `pages/CourtPricingPage.tsx` (`/owner/courts/:courtId/pricing`, title "Bảng giá – <tên sân>"):
   - `PricingForm` – RHF + `zodResolver(pricingConfigSchema)`: ô giá mặc định; **2 khu `useFieldArray`** (Ngày thường / Cuối tuần) mỗi dòng: giờ bắt đầu, giờ kết thúc (Select theo giờ), giá/giờ (input định dạng nghìn), nhãn; nút thêm/xóa dòng; nút preset "Thêm giờ vàng 17:00–21:00"; lỗi chồng khung hiển thị ngay dòng bị lỗi (từ `superRefine`).
   - **Xem trước bảng giá** 24 giờ × 2 loại ngày cập nhật realtime theo form (`useWatch` + `useMemo`) bằng util thuần `buildPriceTable(config): { minute: number; weekday: number; weekend: number; weekdayLabel; weekendLabel }[]` (dùng chung logic khớp rule với `priceForSlot` – có thể chuyển phần "tìm rule khớp" sang shared `utils/pricing-match.ts` để FE/BE dùng chung).
   - Lỗi server 400 (`details[].path`) map vào field bằng util `applyServerErrors(setError, error)` (đặt trong `features/pricing/utils`).
   - Modal "Sao chép bảng giá sang sân khác" (checkbox các sân cùng cụm).
-- [ ] Test FE: `PricingForm.test.tsx` (**tương tác**: thêm 2 rule chồng nhau → hiện lỗi, sửa lại → hết lỗi; bấm xóa dòng); `buildPriceTable.test.ts`.
+- [x] Test FE: `PricingForm.test.tsx` (**tương tác**: thêm 2 rule chồng nhau → hiện lỗi, sửa lại → hết lỗi; bấm xóa dòng); `buildPriceTable.test.ts`.
 
 ### L3 – Khóa lịch bảo trì
 
 **shared:** `createMaintenanceSchema { startAt, endAt, reason? ≤ 200 }` + refine (bội 60', end > start, tối đa 30 ngày); `MaintenanceDto { id; courtId; startAt; endAt; reason; createdAt }`.
 
 **BE `modules/maintenance`:**
-- [ ] `maintenance.service.ts`:
+- [x] `maintenance.service.ts`:
   - `findOverlapping(courtIds, from, to, tx?)` – Hiếu dùng (điều kiện chồng: `startAt < to AND endAt > from`).
   - `listUpcoming(courtId, ownerId)`, `create(courtId, ownerId, input)`: `startAt > now`; chồng bảo trì khác → 409 `CONFLICT`; **chồng đơn đang hiệu lực** (`SlotLock` có `bookingId` trong khoảng) → 409 `MAINTENANCE_CONFLICT` với `details.bookingCodes`; `remove(id, ownerId)`.
-- [ ] Controller `owner/courts/:courtId/maintenance` (GET/POST), `owner/maintenance/:id` (DELETE).
-- [ ] Test: chồng đơn → 409 kèm mã đơn; không sở hữu → 403.
+- [x] Controller `owner/courts/:courtId/maintenance` (GET/POST), `owner/maintenance/:id` (DELETE).
+- [x] Test: chồng đơn → 409 kèm mã đơn; không sở hữu → 403.
 
 **FE `features/maintenance`:**
-- [ ] `pages/CourtMaintenancePage.tsx` (`/owner/courts/:courtId/maintenance`): form (ngày, giờ bắt đầu, giờ kết thúc – cho phép sang ngày hôm sau, lý do), danh sách bảo trì sắp tới, xóa (ConfirmDialog); lỗi 409 hiển thị danh sách mã đơn bị trùng.
+- [x] `pages/CourtMaintenancePage.tsx` (`/owner/courts/:courtId/maintenance`): form (ngày, giờ bắt đầu, giờ kết thúc – cho phép sang ngày hôm sau, lý do), danh sách bảo trì sắp tới, xóa (ConfirmDialog); lỗi 409 hiển thị danh sách mã đơn bị trùng.
 
 ### L4 – (đã gộp vào L1) Meta locations
 
-- [ ] `GET /meta/locations` dùng cho bộ lọc của Hiếu; FE hook `useLocationsQuery` export từ `features/owner-venues/index.ts` (hoặc `features/venue-detail`).
+- [x] `GET /meta/locations` dùng cho bộ lọc của Hiếu; FE hook `useLocationsQuery` export từ `features/owner-venues/index.ts` (hoặc `features/venue-detail`).
 
 ### L5 – Trang chi tiết cụm sân (công khai)
 
 **FE `features/venue-detail`:**
-- [ ] `api/venueDetailApi.ts`: `getVenueBySlug(slug)` (tag `Venue`).
-- [ ] `pages/VenueDetailPage.tsx` (`/venues/:slug`): `useDocumentTitle(\`${venue.name} – Đặt sân\`)` (**title động**); không tồn tại → hiển thị NotFound (404).
+- [x] `api/venueDetailApi.ts`: `getVenueBySlug(slug)` (tag `Venue`).
+- [x] `pages/VenueDetailPage.tsx` (`/venues/:slug`): `useDocumentTitle(\`${venue.name} – Đặt sân\`)` (**title động**); không tồn tại → hiển thị NotFound (404).
   - Gallery ảnh (ảnh đầu lớn, còn lại thumbnail, `loading="lazy"`), tên, ★ rating (`avgRating`, `reviewCount`), địa chỉ, điện thoại, chip môn, mô tả.
   - Bảng **giờ mở cửa** (hiển thị "18:00 – 02:00 (+1)"), **chính sách hủy** ("Hủy miễn phí trước giờ chơi X giờ").
   - **Bảng giá tóm tắt** theo từng sân (giá mặc định + các khung giá đặc biệt).
@@ -185,17 +185,17 @@ Quy tắc đúng mục 6.3 tổng quan (dùng `toVnParts`, `isWeekendDay`, `enum
   - Khối **"Lịch trống & đặt sân"**: `<CourtWeekSchedule venue={...} courts={...} />` của Hiếu.
   - Khối **"Đánh giá"**: `<VenueReviews venueId={...} />` của Dương.
   - Bố cục 1 cột trên mobile, 2 cột trên desktop (thông tin bên phải dính `sticky`).
-- [ ] Test: `VenueDetailPage.test.tsx` (**async + MSW**: hiển thị tên, giờ mở cửa qua nửa đêm đúng định dạng, slug sai → 404 state).
+- [x] Test: `VenueDetailPage.test.tsx` (**async + MSW**: hiển thị tên, giờ mở cửa qua nửa đêm đúng định dạng, slug sai → 404 state).
 
 ### L6 – Bản đồ vị trí sân (NÂNG CAO – miễn phí: Leaflet + OpenStreetMap)
 
-- [ ] Cài `leaflet react-leaflet` + `@types/leaflet`. Import `leaflet/dist/leaflet.css`; sửa icon marker mặc định cho Vite (import `marker-icon.png`, `marker-icon-2x.png`, `marker-shadow.png` và `L.Icon.Default.mergeOptions`). Tile `VITE_MAP_TILE_URL`, ghi attribution "© OpenStreetMap contributors".
-- [ ] `features/map/components/`:
+- [x] Cài `leaflet react-leaflet` + `@types/leaflet`. Import `leaflet/dist/leaflet.css`; sửa icon marker mặc định cho Vite (import `marker-icon.png`, `marker-icon-2x.png`, `marker-shadow.png` và `L.Icon.Default.mergeOptions`). Tile `VITE_MAP_TILE_URL`, ghi attribution "© OpenStreetMap contributors".
+- [x] `features/map/components/`:
   - `LocationPicker` – props `{ value?: { lat; lng }; onChange(v) }`: click bản đồ đặt marker, kéo marker, nút "Dùng vị trí hiện tại" (`navigator.geolocation`), mặc định tâm TP.HCM. Dùng trong tab "Vị trí" của VenueEditor (lưu `latitude/longitude`).
   - `VenueMap` – 1 marker + popup tên/địa chỉ.
   - `VenuesMap` – nhiều marker (props `venues: Pick<VenueCardDto, 'slug'|'name'|'latitude'|'longitude'|'minPricePerHour'>[]`), popup có link `/venues/:slug`, tự `fitBounds`. Hiếu dùng ở tab "Bản đồ" trang tìm kiếm.
-- [ ] Các component bản đồ export qua `React.lazy` (`features/map/index.ts` export bản lazy + `Suspense` fallback Skeleton) → **code-splitting** (leaflet nặng, chỉ tải khi cần) – ghi vào báo cáo.
-- [ ] Test: `LocationPicker.test.tsx` (mock `react-leaflet` ở mức module, kiểm tra nút "Dùng vị trí hiện tại" gọi `onChange` với tọa độ từ `navigator.geolocation` mock).
+- [x] Các component bản đồ export qua `React.lazy` (`features/map/index.ts` export bản lazy + `Suspense` fallback Skeleton) → **code-splitting** (leaflet nặng, chỉ tải khi cần) – ghi vào báo cáo.
+- [x] Test: `LocationPicker.test.tsx` (mock `react-leaflet` ở mức module, kiểm tra nút "Dùng vị trí hiện tại" gọi `onChange` với tọa độ từ `navigator.geolocation` mock).
 
 ---
 
@@ -230,11 +230,11 @@ Quy tắc đúng mục 6.3 tổng quan (dùng `toVnParts`, `isWeekendDay`, `enum
 
 ## 7. Checklist Definition of Done
 
-- [ ] L0 → L6 xong, mỗi chức năng đủ DB + BE + API + shared + FE + test.
-- [ ] Seed venues chạy được, có cụm qua nửa đêm.
-- [ ] Mọi API owner kiểm tra sở hữu ở service (403) – không chỉ Guard.
-- [ ] Form dùng tốt trên mobile.
-- [ ] Báo cáo phần mình xong.
+- [x] L0 → L6 xong, mỗi chức năng đủ DB + BE + API + shared + FE + test.
+- [x] Seed venues chạy được, có cụm qua nửa đêm.
+- [x] Mọi API owner kiểm tra sở hữu ở service (403) – không chỉ Guard.
+- [x] Form dùng tốt trên mobile.
+- [x] Báo cáo phần mình xong.
 
 ## 8. Gợi ý nhánh & commit
 
