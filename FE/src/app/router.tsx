@@ -9,6 +9,10 @@ import { authRoutes, ownerPendingRoute } from '@/features/auth/routes';
 import { profileRoutes } from '@/features/profile/routes';
 import { adminDashboardRoutes } from '@/features/admin-dashboard/routes';
 import { adminUserRoutes } from '@/features/admin-users/routes';
+import { venueDetailRoutes } from '@/features/venue-detail/routes';
+import { ownerVenueRoutes } from '@/features/owner-venues/routes';
+import { pricingRoutes } from '@/features/pricing/routes';
+import { maintenanceRoutes } from '@/features/maintenance/routes';
 
 export const router = createBrowserRouter([
   {
@@ -25,6 +29,7 @@ export const router = createBrowserRouter([
           import('@/pages/ForbiddenPage').then((module) => ({ Component: module.default })),
       },
       ownerPendingRoute,
+      ...venueDetailRoutes,
       { path: 'me', element: <CustomerLayout />, children: [...profileRoutes] },
       {
         path: '*',
@@ -44,6 +49,9 @@ export const router = createBrowserRouter([
         lazy: () =>
           import('@/pages/ComingSoonPage').then((module) => ({ Component: module.default })),
       },
+      ...ownerVenueRoutes,
+      ...pricingRoutes,
+      ...maintenanceRoutes,
     ],
   },
   {

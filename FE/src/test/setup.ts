@@ -18,6 +18,14 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
+// antd Table dùng ResizeObserver
+class MockResizeObserver {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+}
+window.ResizeObserver = MockResizeObserver;
+
 // Hưng sẽ bổ sung MSW server (listen/resetHandlers/close) ở task H0.5.
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => {

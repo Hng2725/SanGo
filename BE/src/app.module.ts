@@ -18,6 +18,10 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { MailModule } from './modules/mail/mail.module';
+import { VenuesModule } from './modules/venues/venues.module';
+import { CourtsModule } from './modules/courts/courts.module';
+import { PricingModule } from './modules/pricing/pricing.module';
+import { MaintenanceModule } from './modules/maintenance/maintenance.module';
 
 @Module({
   imports: [
@@ -42,6 +46,10 @@ import { MailModule } from './modules/mail/mail.module';
     AuthModule,
     AdminModule,
     MailModule,
+    VenuesModule,
+    CourtsModule,
+    PricingModule,
+    MaintenanceModule,
   ],
   controllers: [AppController],
   providers: [
