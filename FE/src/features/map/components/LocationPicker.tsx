@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { Button, Space, Typography, message } from 'antd';
+import { Button, Space, Typography, message, theme } from 'antd';
 import { AimOutlined } from '@ant-design/icons';
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import type { Marker as LeafletMarker } from 'leaflet';
@@ -41,6 +41,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
   height = 360,
 }) => {
   setupLeafletIcons();
+  const { token } = theme.useToken();
   const markerRef = useRef<LeafletMarker>(null);
 
   const markerPosition: [number, number] | null = useMemo(() => {
@@ -100,7 +101,15 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
         </Button>
       </Space>
 
-      <div style={{ height, width: '100%', borderRadius: 8, overflow: 'hidden', border: '1px solid #d9d9d9' }}>
+      <div
+        style={{
+          height,
+          width: '100%',
+          borderRadius: token.borderRadius,
+          overflow: 'hidden',
+          border: `1px solid ${token.colorBorder}`,
+        }}
+      >
         <MapContainer
           center={markerPosition ?? DEFAULT_VN_CENTER}
           zoom={14}

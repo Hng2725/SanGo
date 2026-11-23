@@ -10,6 +10,7 @@ import {
   Space,
   Switch,
   Typography,
+  theme,
 } from 'antd';
 import { CopyOutlined } from '@ant-design/icons';
 import {
@@ -56,6 +57,7 @@ export const OpeningHoursForm: React.FC<OpeningHoursFormProps> = ({
   onSubmit,
   loading = false,
 }) => {
+  const { token } = theme.useToken();
   // Chuẩn bị đủ 7 ngày 0..6
   const [hours, setHours] = useState<OpeningHoursInput>(() => {
     const map = new Map<number, OpeningHourDto>();
@@ -157,9 +159,11 @@ export const OpeningHoursForm: React.FC<OpeningHoursFormProps> = ({
               key={dayOfWeek}
               style={{
                 padding: '12px 16px',
-                background: current.isClosed ? '#f5f5f5' : '#fafafa',
-                borderRadius: 8,
-                border: errorMsg ? '1px solid #ff4d4f' : '1px solid #f0f0f0',
+                background: current.isClosed
+                  ? token.colorFillTertiary
+                  : token.colorFillAlter,
+                borderRadius: token.borderRadius,
+                border: `1px solid ${errorMsg ? token.colorError : token.colorBorderSecondary}`,
               }}
             >
               <Row gutter={[16, 12]} align="middle">
@@ -217,7 +221,7 @@ export const OpeningHoursForm: React.FC<OpeningHoursFormProps> = ({
               </Row>
 
               {errorMsg && (
-                <div style={{ color: '#ff4d4f', fontSize: 13, marginTop: 8 }}>
+                <div style={{ color: token.colorError, fontSize: 13, marginTop: 8 }}>
                   ⚠️ {errorMsg}
                 </div>
               )}

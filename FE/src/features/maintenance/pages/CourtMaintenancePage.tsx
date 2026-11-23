@@ -13,6 +13,7 @@ import {
   Row,
   Select,
   Table,
+  Typography,
 } from 'antd';
 import { ArrowLeftOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -124,7 +125,8 @@ export const CourtMaintenancePage: React.FC = () => {
     {
       title: 'Lý do',
       dataIndex: 'reason',
-      render: (val: string | null) => val || <span style={{ color: '#8c8c8c' }}>Không ghi chú</span>,
+      render: (val: string | null) =>
+        val || <Typography.Text type="secondary">Không ghi chú</Typography.Text>,
     },
     {
       title: 'Hành động',

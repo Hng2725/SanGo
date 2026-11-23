@@ -11,6 +11,7 @@ import {
   Space,
   Tag,
   Typography,
+  theme,
 } from 'antd';
 import {
   EditOutlined,
@@ -31,6 +32,7 @@ import {
 export const OwnerVenuesPage: React.FC = () => {
   useDocumentTitle('Quản lý cụm sân – SanGo');
   const { message } = App.useApp();
+  const { token } = theme.useToken();
 
   const { data: venues = [], isLoading, refetch } = useListOwnerVenuesQuery();
   const [hideVenue, { isLoading: isHiding }] = useHideOwnerVenueMutation();
@@ -79,7 +81,7 @@ export const OwnerVenuesPage: React.FC = () => {
               <Card
                 hoverable
                 cover={
-                  <div style={{ height: 180, overflow: 'hidden', background: '#f0f0f0' }}>
+                  <div style={{ height: 180, overflow: 'hidden', background: token.colorFillAlter }}>
                     <Image
                       alt={venue.name}
                       src={venue.imageUrls[0] || 'https://placehold.co/800x500?text=SanGo'}
