@@ -12,6 +12,7 @@ import {
   Table,
   Tag,
   Typography,
+  theme,
 } from 'antd';
 import {
   CalendarOutlined,
@@ -46,6 +47,7 @@ const DAY_NAMES = [
 const DISPLAY_DAYS = [1, 2, 3, 4, 5, 6, 0];
 
 export const VenueDetailPage: React.FC = () => {
+  const { token } = theme.useToken();
   const { slug = '' } = useParams<{ slug: string }>();
   const { data: venue, isLoading, isError } = useGetVenueDetailBySlugQuery(slug);
 
@@ -87,7 +89,7 @@ export const VenueDetailPage: React.FC = () => {
         <Col xs={24} lg={15}>
           {/* Gallery ảnh */}
           <div style={{ marginBottom: 24 }}>
-            <div style={{ height: 380, borderRadius: 12, overflow: 'hidden', background: '#f5f5f5', marginBottom: 12 }}>
+            <div style={{ height: 380, borderRadius: 12, overflow: 'hidden', background: token.colorFillAlter, marginBottom: 12 }}>
               <Image
                 src={images[activeImageIndex] || images[0]}
                 alt={venue.name}
@@ -109,7 +111,7 @@ export const VenueDetailPage: React.FC = () => {
                       borderRadius: 6,
                       overflow: 'hidden',
                       cursor: 'pointer',
-                      border: idx === activeImageIndex ? '2px solid #1890ff' : '2px solid transparent',
+                      border: idx === activeImageIndex ? `2px solid ${token.colorPrimary}` : '2px solid transparent',
                     }}
                   >
                     <img
@@ -131,7 +133,7 @@ export const VenueDetailPage: React.FC = () => {
             </Typography.Title>
 
             <Space size="middle" wrap style={{ marginBottom: 16 }}>
-              <Space size={4} style={{ color: '#faad14', fontWeight: 600 }}>
+              <Space size={4} style={{ color: token.colorWarning, fontWeight: 600 }}>
                 <StarFilled />
                 <span>{venue.avgRating ? venue.avgRating.toFixed(1) : '5.0'}</span>
                 <Typography.Text type="secondary" style={{ fontWeight: 'normal' }}>
@@ -187,7 +189,7 @@ export const VenueDetailPage: React.FC = () => {
                   title: 'Giá mặc định / giờ',
                   dataIndex: 'basePricePerHour',
                   render: (price: number) => (
-                    <Typography.Text strong style={{ color: '#0958d9' }}>
+                    <Typography.Text strong style={{ color: token.colorPrimary }}>
                       {formatCurrency(price)}
                     </Typography.Text>
                   ),
@@ -232,8 +234,8 @@ export const VenueDetailPage: React.FC = () => {
             </Typography.Title>
             <Card
               style={{
-                background: '#fafafa',
-                border: '1px dashed #d9d9d9',
+                background: token.colorFillAlter,
+                border: `1px dashed ${token.colorBorder}`,
                 textAlign: 'center',
                 padding: '24px 0',
               }}
@@ -253,13 +255,13 @@ export const VenueDetailPage: React.FC = () => {
           {/* Khối Đánh giá (Placeholder cho Dương) */}
           <div>
             <Typography.Title level={4}>
-              <StarFilled style={{ marginRight: 8, color: '#faad14' }} />
+              <StarFilled style={{ marginRight: 8, color: token.colorWarning }} />
               Đánh giá từ khách hàng ({venue.reviewCount})
             </Typography.Title>
             <Card
               style={{
-                background: '#fafafa',
-                border: '1px dashed #d9d9d9',
+                background: token.colorFillAlter,
+                border: `1px dashed ${token.colorBorder}`,
                 textAlign: 'center',
                 padding: '24px 0',
               }}
@@ -284,7 +286,7 @@ export const VenueDetailPage: React.FC = () => {
             <Card title="Thông tin liên hệ & Vị trí" variant="borderless">
               <Space orientation="vertical" size={14} style={{ width: '100%' }}>
                 <Space align="start">
-                  <EnvironmentOutlined style={{ color: '#1890ff', fontSize: 16, marginTop: 4 }} />
+                  <EnvironmentOutlined style={{ color: token.colorPrimary, fontSize: 16, marginTop: 4 }} />
                   <div>
                     <Typography.Text strong style={{ display: 'block' }}>
                       Địa chỉ
@@ -297,7 +299,7 @@ export const VenueDetailPage: React.FC = () => {
 
                 {venue.phone && (
                   <Space align="start">
-                    <PhoneOutlined style={{ color: '#52c41a', fontSize: 16, marginTop: 4 }} />
+                    <PhoneOutlined style={{ color: token.colorSuccess, fontSize: 16, marginTop: 4 }} />
                     <div>
                       <Typography.Text strong style={{ display: 'block' }}>
                         Điện thoại liên hệ
@@ -310,7 +312,7 @@ export const VenueDetailPage: React.FC = () => {
                 )}
 
                 <Space align="start">
-                  <UserOutlined style={{ color: '#722ed1', fontSize: 16, marginTop: 4 }} />
+                  <UserOutlined style={{ color: token.colorPrimary, fontSize: 16, marginTop: 4 }} />
                   <div>
                     <Typography.Text strong style={{ display: 'block' }}>
                       Chủ sở hữu

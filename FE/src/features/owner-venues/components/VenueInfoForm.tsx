@@ -144,7 +144,7 @@ export const VenueInfoForm: React.FC<VenueInfoFormProps> = ({
                   max={72}
                   style={{ width: '100%' }}
                 />
-                <Button disabled style={{ color: '#595959' }}>
+                <Button disabled>
                   giờ
                 </Button>
               </Space.Compact>

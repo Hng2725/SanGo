@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router';
 import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
-import { Typography } from 'antd';
+import { Typography, theme } from 'antd';
 import L from 'leaflet';
 import type { VenueCardDto } from '@sango/shared';
 import { formatCurrency } from '@/common/utils/format';
@@ -37,6 +37,7 @@ function FitBounds({
 
 export const VenuesMap: React.FC<VenuesMapProps> = ({ venues, height = 500 }) => {
   setupLeafletIcons();
+  const { token } = theme.useToken();
 
   const validVenues = venues.filter(
     (v): v is typeof v & { latitude: number; longitude: number } =>
@@ -46,7 +47,15 @@ export const VenuesMap: React.FC<VenuesMapProps> = ({ venues, height = 500 }) =>
   const points = validVenues.map((v) => ({ lat: v.latitude, lng: v.longitude }));
 
   return (
-    <div style={{ height, width: '100%', borderRadius: 8, overflow: 'hidden', border: '1px solid #d9d9d9' }}>
+    <div
+      style={{
+        height,
+        width: '100%',
+        borderRadius: token.borderRadius,
+        overflow: 'hidden',
+        border: `1px solid ${token.colorBorder}`,
+      }}
+    >
       <MapContainer
         center={points.length > 0 ? [points[0].lat, points[0].lng] : DEFAULT_VN_CENTER}
         zoom={12}

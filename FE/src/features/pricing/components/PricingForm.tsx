@@ -13,6 +13,7 @@ import {
   Table,
   Tag,
   Typography,
+  theme,
 } from 'antd';
 import {
   DeleteOutlined,
@@ -45,6 +46,7 @@ export const PricingForm: React.FC<PricingFormProps> = ({
   onSubmit,
   loading = false,
 }) => {
+  const { token } = theme.useToken();
   const {
     control,
     handleSubmit,
@@ -86,7 +88,11 @@ export const PricingForm: React.FC<PricingFormProps> = ({
       <Card
         key={fields[index].id}
         size="small"
-        style={{ marginBottom: 12, background: '#fafafa', border: '1px solid #f0f0f0' }}
+        style={{
+          marginBottom: 12,
+          background: token.colorFillAlter,
+          border: `1px solid ${token.colorBorderSecondary}`,
+        }}
       >
         <Row gutter={[12, 12]} align="middle">
           <Col xs={12} sm={6}>
@@ -213,7 +219,7 @@ export const PricingForm: React.FC<PricingFormProps> = ({
                       parser={(val) => (val ? Number(val.replace(/\./g, '')) : 0)}
                       style={{ width: '100%' }}
                     />
-                    <Button disabled style={{ color: '#595959' }}>
+                    <Button disabled>
                       ₫ / giờ
                     </Button>
                   </Space.Compact>

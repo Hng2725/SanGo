@@ -1,6 +1,6 @@
 import React from 'react';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
-import { Typography } from 'antd';
+import { Typography, theme } from 'antd';
 import {
   DEFAULT_VN_CENTER,
   MAP_ATTRIBUTION,
@@ -24,6 +24,7 @@ export const VenueMap: React.FC<VenueMapProps> = ({
   height = 300,
 }) => {
   setupLeafletIcons();
+  const { token } = theme.useToken();
 
   const hasCoords = typeof latitude === 'number' && typeof longitude === 'number';
   const position: [number, number] = hasCoords ? [latitude, longitude] : DEFAULT_VN_CENTER;
@@ -36,9 +37,12 @@ export const VenueMap: React.FC<VenueMapProps> = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#f5f5f5',
-          borderRadius: 8,
-          color: '#8c8c8c',
+          background: token.colorFillAlter,
+          borderRadius: token.borderRadius,
+          border: `1px solid ${token.colorBorderSecondary}`,
+          color: token.colorTextSecondary,
+          padding: '0 16px',
+          textAlign: 'center',
         }}
       >
         Chưa có thông tin tọa độ bản đồ cho cụm sân này.
@@ -47,7 +51,15 @@ export const VenueMap: React.FC<VenueMapProps> = ({
   }
 
   return (
-    <div style={{ height, width: '100%', borderRadius: 8, overflow: 'hidden', border: '1px solid #d9d9d9' }}>
+    <div
+      style={{
+        height,
+        width: '100%',
+        borderRadius: token.borderRadius,
+        overflow: 'hidden',
+        border: `1px solid ${token.colorBorder}`,
+      }}
+    >
       <MapContainer
         center={position}
         zoom={15}
