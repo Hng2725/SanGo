@@ -22,6 +22,10 @@ import { VenuesModule } from './modules/venues/venues.module';
 import { CourtsModule } from './modules/courts/courts.module';
 import { PricingModule } from './modules/pricing/pricing.module';
 import { MaintenanceModule } from './modules/maintenance/maintenance.module';
+import { SearchModule } from './modules/search/search.module';
+import { AvailabilityModule } from './modules/availability/availability.module';
+import { BookingsModule } from './modules/bookings/bookings.module';
+import { HoldsModule } from './modules/holds/holds.module';
 
 @Module({
   imports: [
@@ -50,6 +54,10 @@ import { MaintenanceModule } from './modules/maintenance/maintenance.module';
     CourtsModule,
     PricingModule,
     MaintenanceModule,
+    SearchModule,
+    BookingsModule,
+    HoldsModule,
+    AvailabilityModule,
   ],
   controllers: [AppController],
   providers: [

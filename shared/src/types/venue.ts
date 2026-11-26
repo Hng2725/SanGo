@@ -61,11 +61,12 @@ export interface VenueCardDto {
   id: string;
   slug: string;
   name: string;
+  address: string;
   district: string;
   city: string;
   imageUrl: string | null;
   sports: Sport[];
-  minPricePerHour: number;
+  minPricePerHour: number | null;
   avgRating: number;
   reviewCount: number;
   latitude: number | null;
