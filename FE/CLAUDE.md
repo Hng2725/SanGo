@@ -38,7 +38,8 @@ Cần thư viện mới → phải miễn phí, phổ biến, và nêu lý do ch
 ```
 src/
 ├─ app/          store.ts (makeStore), hooks.ts (useAppDispatch/useAppSelector), router.tsx, providers.tsx
-├─ common/       api/ (baseApi, errors) · ui/ · theme/ (tokens, antdTheme) · hooks/ · contexts/ · hoc/ · utils/ · i18n/
+├─ components/   branding/ · feedback/ · forms/ · icons/ · layout/ (component UI dùng chung)
+├─ common/       api/ (baseApi, errors) · theme/ (tokens, antdTheme) · hooks/ · contexts/ · hoc/ · utils/ · i18n/
 ├─ styles/       global.css (biến chuyển động, view transition, reduced motion)
 ├─ layouts/      MainLayout, AuthLayout, CustomerLayout, OwnerLayout, AdminLayout
 ├─ pages/        HomePage, NotFoundPage, ErrorPage, ForbiddenPage
@@ -53,7 +54,8 @@ src/
 ```
 
 - Feature khác chỉ import qua `@/features/<x>` (file `index.ts`), không import sâu vào file nội bộ của feature người khác.
-- Code dùng chung nhiều feature → `common/` (thuộc Hưng; thêm file mới thì báo nhóm, không sửa hành vi component có sẵn).
+- Component UI dùng chung nhiều feature → `components/` (thuộc Hưng), chia theo nhóm trách nhiệm; component nghiệp vụ riêng → `features/<feature>/components/`. Xem `src/components/README.md`.
+- API, hook, context, HOC, theme và tiện ích dùng chung → `common/` (thuộc Hưng; thêm file mới thì báo nhóm, không sửa hành vi có sẵn).
 - Tên file: component `PascalCase.tsx`, hook `useXxx.ts`, util/slice `camelCase.ts`.
 
 ## 5. Routing, trang, title
@@ -90,7 +92,7 @@ RTK Query:
 
 - `useForm<Input>({ resolver: zodResolver(<schemaTừShared>) })` – **cùng schema server dùng** (bảng giá, giờ mở cửa, đặt sân, đánh giá…). Không viết lại rule validate ở FE.
 - Danh sách động dùng `useFieldArray`; xem trước realtime dùng `useWatch` + `useMemo`.
-- Giao diện form: `<Form layout="vertical" component="form">` của antd + các wrapper `RHFInput`, `RHFPassword`, `RHFSelect`, `RHFTextArea` (`@/common/ui`) nối `Controller` của RHF với `Form.Item` (`validateStatus` + `help`). **Không** dùng `Form.useForm`/rules của antd để validate.
+- Giao diện form: `<Form layout="vertical" component="form">` của antd + các wrapper `RHFInput`, `RHFPassword`, `RHFSelect`, `RHFTextArea` (`@/components/forms/RHFFields`) nối `Controller` của RHF với `Form.Item` (`validateStatus` + `help`). **Không** dùng `Form.useForm`/rules của antd để validate.
 - Lỗi 400 từ server (`details[].path`) map vào field bằng `setError`; lỗi khác hiển thị bằng `getErrorMessage(error)` (`Alert` trong form hoặc `message.error`).
 - Nút submit: `loading` khi đang gửi; thành công → `message.success('Đã <động từ của nút>')` lấy từ `App.useApp()` (không gọi `message` tĩnh của antd).
 
@@ -110,7 +112,7 @@ RTK Query:
 
 ## 10. UI, responsive, accessibility
 
-- Dùng trực tiếp component antd (Button, Input, Select, Table, List, Modal, Drawer, Tabs, Segmented, Skeleton, Empty, Badge…) **cùng** các component dự án trong `@/common/ui`: `PageHeader`, `Section` (thay Card có bóng), `StatusDot`, `EmptyState`, `RHF*`, `ConfirmAction`, `BrandLogo`, `CourtLines`, `DashboardShell`. Thiếu component dùng chung → báo Hưng/nhóm; component chỉ một feature dùng thì để trong feature đó.
+- Dùng trực tiếp component antd (Button, Input, Select, Table, List, Modal, Drawer, Tabs, Segmented, Skeleton, Empty, Badge…) **cùng** các component dự án trong `@/components`: `PageHeader`, `Section` (thay Card có bóng), `StatusDot`, `EmptyState`, `RHF*`, `ConfirmAction`, `BrandLogo`, `CourtLines`, `DashboardShell`. Ưu tiên import trực tiếp theo nhóm, ví dụ `@/components/layout/PageHeader`. Thiếu component dùng chung → báo Hưng/nhóm; component chỉ một feature dùng thì để trong feature đó.
 - **Theme:** mọi màu/bo góc/font lấy từ token (`theme.useToken()` hoặc biến CSS `var(--sg-…)`); **không ghi cứng mã màu** trong component (chỉ `common/theme/tokens.ts` được chứa mã màu). Khối nội dung dùng viền, không đổ bóng; không gradient.
 - Trạng thái hiển thị bằng `StatusDot` (chấm + chữ), không dùng `Tag` màu đặc. Icon chỉ dùng bộ **Outlined**.
 - Chuyển động: dùng sẵn của antd + View Transitions của React Router (`viewTransition`); không thêm animation fade-up cho từng khối hay hover cho từng thẻ (xem file thiết kế 00, mục 5).

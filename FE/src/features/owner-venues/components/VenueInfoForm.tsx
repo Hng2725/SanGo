@@ -19,7 +19,7 @@ import {
   type CreateVenueInput,
 } from '@sango/shared';
 import type { z } from 'zod';
-import { RHFInput, RHFTextArea } from '@/common/ui/RHFFields';
+import { RHFInput, RHFTextArea } from '@/components/forms/RHFFields';
 
 export interface VenueInfoFormProps {
   initialValues?: Partial<CreateVenueInput>;

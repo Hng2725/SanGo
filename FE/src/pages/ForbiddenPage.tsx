@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router';
 import { useAppDispatch } from '@/app/hooks';
 import { baseApi } from '@/common/api/baseApi';
 import { useDocumentTitle } from '@/common/hooks/useDocumentTitle';
-import { ErrorState } from '@/common/ui/ErrorState';
+import { ErrorState } from '@/components/feedback/ErrorState';
 import { loggedOut } from '@/features/auth/model/authSlice';
 
 export default function ForbiddenPage() {

@@ -24,11 +24,11 @@ import {
 import { getErrorMessage } from '@/common/api/errors';
 import { useDocumentTitle } from '@/common/hooks/useDocumentTitle';
 import { formatCurrency } from '@/common/utils/format';
-import { ConfirmAction } from '@/common/ui/ConfirmAction';
-import { CourtLines } from '@/common/ui/CourtLines';
-import { PageHeader } from '@/common/ui/PageHeader';
-import { Section } from '@/common/ui/Section';
-import { SportIcon } from '@/common/ui/SportIcon';
+import { ConfirmAction } from '@/components/feedback/ConfirmAction';
+import { CourtLines } from '@/components/branding/CourtLines';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { Section } from '@/components/layout/Section';
+import { SportIcon } from '@/components/icons/SportIcon';
 import { useApproveOwnerMutation, useUsersQuery } from '@/features/admin-users/api/adminUsersApi';
 import { useOverviewQuery } from '../api/adminDashboardApi';
 import { BookingChart } from '../components/BookingChart';

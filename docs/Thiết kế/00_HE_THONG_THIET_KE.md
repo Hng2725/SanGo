@@ -22,14 +22,16 @@ Ba nguyên tắc:
 
 | Tên | Light | Dark | Dùng cho |
 |---|---|---|---|
-| **Cỏ** (primary) | `#1E7A4F` | `#3AA36F` | Nút chính, link, mục đang chọn, focus |
-| **Cỏ đậm** | `#155C3B` | `#1E7A4F` | Hover/active nút chính, nền panel màn đăng nhập |
-| **Mực** (text) | `#1B2420` | `#E4EBE7` | Chữ chính |
-| **Đá** (text phụ) | `#5F6B66` | `#9AA6A0` | Mô tả, nhãn phụ, placeholder đậm |
-| **Vạch** (border) | `#DCE3DF` | `#26312C` | Viền khối, đường phân cách |
-| **Nền** (app bg) | `#F4F7F5` | `#0F1513` | Nền khu quản trị, nền header bảng |
-| **Mặt sân** (surface) | `#FFFFFF` | `#161E1A` | Nền khối nội dung, header |
-| **Cỏ đêm** | `#0E3B28` | `#0B2A1D` | Nền Sider khu quản trị, dải "bảng tỉ số", lớp phủ ảnh màn đăng nhập |
+| **Cỏ** (primary) | `#1E7A4F` | `#65C694` | Nút chính, link, mục đang chọn, focus |
+| **Cỏ đậm** | `#155C3B` | `#4BA77A` | Hover/active nút chính |
+| **Mực** (text) | `#1B2420` | `#E9F2EC` | Chữ chính |
+| **Đá** (text phụ) | `#5F6B66` | `#ADBCB2` | Mô tả, nhãn phụ, placeholder đậm |
+| **Vạch** (border) | `#D2DED5` | `#455B4D` | Viền khối, đường phân cách |
+| **Nền** (app bg) | `#EAF0EB` | `#223128` | Nền toàn ứng dụng, nền header bảng |
+| **Mặt sân** (surface) | `#F8FAF7` | `#2B3C33` | Nền khối nội dung, header |
+| **Lớp nổi** (elevated) | `#FFFFFF` | `#354B3E` | Dropdown, modal, popover |
+| **Vùng chọn** (selected) | `#E6F1E9` | `#2B4938` | Nền bộ lọc hoặc menu được chọn |
+| **Cỏ đêm** | `#0E3B28` | `#183F2D` | Nền Sider khu quản trị, dải "bảng tỉ số", lớp phủ ảnh màn đăng nhập |
 | **Vôi** (accent) | `#C6F06A` | `#C6F06A` | **Chỉ dùng trên nền Cỏ đêm**: icon logo, vạch chỉ mục menu đang chọn, chỉ số tăng, thanh tiến độ trong bảng tỉ số, icon chip môn. Không dùng trên nền trắng |
 
 Màu trạng thái (giữ trầm, đủ tương phản AA trên nền trắng):
@@ -125,8 +127,8 @@ Quy tắc:
 
 ```ts
 export const palette = {
-  light: { primary: '#1E7A4F', primaryStrong: '#155C3B', ink: '#1B2420', stone: '#5F6B66', line: '#DCE3DF', base: '#F4F7F5', surface: '#FFFFFF', night: '#0E3B28' },
-  dark:  { primary: '#3AA36F', primaryStrong: '#1E7A4F', ink: '#E4EBE7', stone: '#9AA6A0', line: '#26312C', base: '#0F1513', surface: '#161E1A', night: '#0B2A1D' },
+  light: { primary: '#1E7A4F', primaryStrong: '#155C3B', ink: '#1B2420', stone: '#5F6B66', line: '#D2DED5', base: '#EAF0EB', surface: '#F8FAF7', elevated: '#FFFFFF', selected: '#E6F1E9', night: '#0E3B28', onPrimary: '#FFFFFF' },
+  dark:  { primary: '#65C694', primaryStrong: '#4BA77A', ink: '#E9F2EC', stone: '#ADBCB2', line: '#455B4D', base: '#223128', surface: '#2B3C33', elevated: '#354B3E', selected: '#2B4938', night: '#183F2D', onPrimary: '#132B1E' },
 } as const;
 export const accentLime = '#C6F06A'; // chỉ dùng trên nền night
 export const fontDisplay = '"Barlow Condensed", "Be Vietnam Pro", sans-serif';
@@ -158,6 +160,8 @@ export function getAntdTheme(mode: ThemeMode, reducedMotion: boolean): ThemeConf
       colorBorderSecondary: c.line,
       colorBgLayout: c.base,
       colorBgContainer: c.surface,
+      colorBgElevated: c.elevated,
+      colorTextPlaceholder: c.stone,
       fontFamily: '"Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
       fontSize: 14,
       borderRadius: 8,
@@ -167,7 +171,7 @@ export function getAntdTheme(mode: ThemeMode, reducedMotion: boolean): ThemeConf
       controlHeightLG: 44,
       boxShadowTertiary: 'none',
       motion: !reducedMotion,
-      motionDurationMid: '0.2s',
+      motionDurationMid: reducedMotion ? '0s' : '0.2s',
       motionEaseOut: 'cubic-bezier(0.22, 1, 0.36, 1)',
     },
     components: {
@@ -179,11 +183,11 @@ export function getAntdTheme(mode: ThemeMode, reducedMotion: boolean): ThemeConf
         darkItemSelectedBg: 'rgba(255,255,255,0.10)', darkItemSelectedColor: '#FFFFFF',
         itemBorderRadius: 8, itemMarginInline: 10, itemHeight: 42, activeBarBorderWidth: 0,
         // Menu sáng (khu "của tôi" /me/*)
-        itemBg: 'transparent', itemSelectedBg: mode === 'dark' ? 'rgba(58,163,111,0.14)' : 'rgba(30,122,79,0.08)', itemSelectedColor: c.primary,
+        itemBg: 'transparent', itemSelectedBg: c.selected, itemSelectedColor: c.primary,
       },
-      Button: { primaryShadow: 'none', defaultShadow: 'none', dangerShadow: 'none', fontWeight: 500 },
+      Button: { primaryColor: c.onPrimary, primaryShadow: 'none', defaultShadow: 'none', dangerShadow: 'none', fontWeight: 500 },
       Card: { headerFontSize: 16, paddingLG: 24 },
-      Table: { headerBg: c.base, headerColor: c.stone, headerSplitColor: 'transparent', rowHoverBg: mode === 'dark' ? '#1B2520' : '#F7FAF8', cellPaddingBlock: 14 },
+      Table: { headerBg: c.base, headerColor: c.stone, headerSplitColor: 'transparent', rowHoverBg: c.base, cellPaddingBlock: 14 },
       Modal: { borderRadiusLG: 14, titleFontSize: 18 },
       Segmented: { itemSelectedBg: c.surface },
       Statistic: { contentFontSize: 28 },
@@ -223,7 +227,7 @@ body { margin: 0; -webkit-font-smoothing: antialiased; }
 .app-sider  { view-transition-name: app-sider; }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *, *::before, *::after { animation-duration: 0s !important; transition-duration: 0s !important; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
 ```
@@ -249,7 +253,7 @@ body { margin: 0; -webkit-font-smoothing: antialiased; }
 
 ---
 
-## 8. Component dùng chung (Hưng làm trong `common/ui`, mọi người dùng)
+## 8. Component dùng chung (Hưng làm trong `components`, mọi người dùng)
 
 | Component | Dựa trên antd | Mô tả |
 |---|---|---|

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { CourtLines } from './CourtLines';
+import { CourtLines } from '@/components/branding/CourtLines';
 
 interface ErrorStateProps {
   title: string;

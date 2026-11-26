@@ -5,8 +5,8 @@ import {
   type AvailabilitySlot,
 } from '@sango/shared';
 import { useDocumentTitle } from '@/common/hooks/useDocumentTitle';
-import { EmptyState } from '@/common/ui/EmptyState';
-import { FullPageSpinner } from '@/common/ui/FullPageSpinner';
+import { EmptyState } from '@/components/feedback/EmptyState';
+import { FullPageSpinner } from '@/components/feedback/FullPageSpinner';
 import {
   AvailabilityGrid,
   OwnerSlotCell,

@@ -1,10 +1,5 @@
 import { Alert, App, Button, Form, Radio } from 'antd';
-import {
-  CalendarOutlined,
-  CheckCircleOutlined,
-  MinusCircleOutlined,
-  ShopOutlined,
-} from '@ant-design/icons';
+import { CalendarOutlined, CheckCircleOutlined, ShopOutlined } from '@ant-design/icons';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate, useSearchParams } from 'react-router';
@@ -12,7 +7,8 @@ import { registerSchema, type RegisterInput } from '@sango/shared';
 import { useAppDispatch } from '@/app/hooks';
 import { getErrorCode, getErrorMessage } from '@/common/api/errors';
 import { useDocumentTitle } from '@/common/hooks/useDocumentTitle';
-import { RHFInput, RHFPassword } from '@/common/ui/RHFFields';
+import { RHFInput, RHFPassword } from '@/components/forms/RHFFields';
+import { PasswordRequirements } from '@/components/forms/PasswordRequirements';
 import { useRegisterMutation } from '../api/authApi';
 import { credentialsReceived } from '../model/authSlice';
 export default function RegisterPage() {
@@ -50,14 +46,6 @@ export default function RegisterPage() {
         });
     }
   });
-  const hints = [
-    { label: 'Ít nhất 8 ký tự', valid: password?.length >= 8 },
-    {
-      label: 'Chữ hoa và chữ thường',
-      valid: /[A-Z]/.test(password ?? '') && /[a-z]/.test(password ?? ''),
-    },
-    { label: 'Có chữ số', valid: /\d/.test(password ?? '') },
-  ];
   return (
     <>
       <h1>Tạo tài khoản</h1>
@@ -127,14 +115,7 @@ export default function RegisterPage() {
             autoComplete="new-password"
           />
         </div>
-        <ul className="password-hints">
-          {hints.map((hint) => (
-            <li key={hint.label} className={hint.valid ? 'valid' : ''}>
-              {hint.valid ? <CheckCircleOutlined /> : <MinusCircleOutlined />}
-              {hint.label}
-            </li>
-          ))}
-        </ul>
+        <PasswordRequirements password={password} />
         <Button type="primary" htmlType="submit" block size="large" loading={isLoading}>
           Tạo tài khoản
         </Button>

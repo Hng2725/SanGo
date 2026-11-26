@@ -7,7 +7,7 @@ import { loginSchema, type LoginInput } from '@sango/shared';
 import { useAppDispatch } from '@/app/hooks';
 import { getErrorCode, getErrorMessage } from '@/common/api/errors';
 import { useDocumentTitle } from '@/common/hooks/useDocumentTitle';
-import { RHFInput, RHFPassword } from '@/common/ui/RHFFields';
+import { RHFInput, RHFPassword } from '@/components/forms/RHFFields';
 import { useLoginMutation } from '../api/authApi';
 import { credentialsReceived } from '../model/authSlice';
 export default function LoginPage() {

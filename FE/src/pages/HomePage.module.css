@@ -1,0 +1,203 @@
+.page {
+  display: grid;
+  gap: 32px;
+  padding-bottom: 16px;
+}
+
+.hero {
+  display: grid;
+  gap: 24px;
+  padding: 32px;
+  border: 1px solid var(--sg-line);
+  border-radius: 12px;
+  background: var(--sg-surface);
+}
+
+.intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 272px;
+  align-items: center;
+  gap: 32px;
+}
+
+.copy h1 {
+  color: var(--sg-ink);
+  font:
+    700 36px/40px 'Barlow Condensed',
+    sans-serif;
+}
+
+.copy p {
+  margin: 16px 0 0;
+  max-width: 48ch;
+  color: var(--sg-stone);
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 24px 16px;
+  border-radius: 12px;
+  background: var(--sg-night);
+  color: white;
+}
+
+.summary > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 16px;
+}
+
+.summary > div + div {
+  border-left: 1px solid rgb(255 255 255 / 20%);
+}
+
+.summary strong {
+  font:
+    600 46px/52px 'Barlow Condensed',
+    sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.summary span {
+  color: rgb(255 255 255 / 78%);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.benefits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  color: var(--sg-stone);
+  font-size: 13px;
+}
+
+.benefits span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section {
+  min-width: 0;
+}
+
+.sectionHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.sectionHeading h2 {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--sg-ink);
+}
+
+.sectionHeading p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--sg-stone);
+}
+
+.sectionHeading > a {
+  flex-shrink: 0;
+  color: var(--sg-primary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.venueGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.empty,
+.skeletonCard {
+  padding: 24px;
+  border: 1px solid var(--sg-line);
+  border-radius: 12px;
+  background: var(--sg-surface);
+}
+
+.skeletonCard {
+  display: grid;
+  gap: 16px;
+}
+
+.skeletonImage {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 16 / 10;
+}
+
+@media (max-width: 991px) {
+  .hero {
+    padding: 24px;
+  }
+  .intro {
+    grid-template-columns: minmax(0, 1fr) 240px;
+    gap: 24px;
+  }
+  .summary {
+    padding: 20px 8px;
+  }
+  .venueGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+}
+
+@media (max-width: 767px) {
+  .hero {
+    padding: 24px 16px;
+  }
+  .intro {
+    grid-template-columns: 1fr;
+  }
+  .summary {
+    max-width: 320px;
+  }
+  .summary strong {
+    font-size: 36px;
+    line-height: 42px;
+  }
+  .benefits {
+    gap: 12px 16px;
+  }
+}
+
+@media (max-width: 575px) {
+  .page {
+    gap: 24px;
+  }
+  .intro {
+    gap: 16px;
+  }
+  .summary {
+    max-width: none;
+    padding: 12px 8px;
+  }
+  .summary > div {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 8px;
+    padding: 0 12px;
+  }
+  .sectionHeading {
+    gap: 12px;
+  }
+  .sectionHeading p {
+    max-width: 28ch;
+  }
+  .venueGrid {
+    grid-template-columns: 1fr;
+  }
+}

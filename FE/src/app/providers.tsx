@@ -9,9 +9,33 @@ import { ThemeProvider, useTheme } from '@/common/contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from '@/common/contexts/LanguageContext';
 import { getAntdTheme } from '@/common/theme/antdTheme';
 import { bootstrapAuth } from '@/features/auth/model/authSlice';
+import { useMediaQuery } from '@/common/hooks/useMediaQuery';
 function Inner({ children }: { children: ReactNode }) {
-  const { mode } = useTheme(); const { language } = useLanguage(); const dispatch = useAppDispatch();
-  useEffect(() => { void dispatch(bootstrapAuth()); }, [dispatch]);
-  return <ConfigProvider locale={language === 'vi' ? viVN : enUS} wave={{ disabled: true }} theme={getAntdTheme(mode, window.matchMedia('(prefers-reduced-motion: reduce)').matches)}><AntApp>{children}</AntApp></ConfigProvider>;
+  const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const { mode } = useTheme();
+  const { language } = useLanguage();
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    void dispatch(bootstrapAuth());
+  }, [dispatch]);
+  return (
+    <ConfigProvider
+      locale={language === 'vi' ? viVN : enUS}
+      wave={{ disabled: true }}
+      theme={getAntdTheme(mode, reducedMotion)}
+    >
+      <AntApp>{children}</AntApp>
+    </ConfigProvider>
+  );
 }
-export function AppProviders({ children }: { children: ReactNode }) { return <Provider store={store}><ThemeProvider><LanguageProvider><Inner>{children}</Inner></LanguageProvider></ThemeProvider></Provider>; }
+export function AppProviders({ children }: { children: ReactNode }) {
+  return (
+    <Provider store={store}>
+      <ThemeProvider>
+        <LanguageProvider>
+          <Inner>{children}</Inner>
+        </LanguageProvider>
+      </ThemeProvider>
+    </Provider>
+  );
+}

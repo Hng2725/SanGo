@@ -10,8 +10,8 @@
 |---|---|---|---|
 | A | Khung công khai (header, footer, menu mobile) | mọi trang công khai | `layouts/MainLayout.tsx` |
 | B | Khung tài khoản (khu "của tôi") | `/me/*` | `layouts/CustomerLayout.tsx` (+ `AccountNav`) |
-| C | Khung quản trị dùng chung | `/owner/*`, `/admin/*` | `common/ui/DashboardShell/`, `layouts/OwnerLayout.tsx`, `layouts/AdminLayout.tsx` |
-| D | Khung đăng nhập / đăng ký | `/login`, `/register` | `layouts/AuthLayout.tsx` + `common/ui/CourtLines.tsx` |
+| C | Khung quản trị dùng chung | `/owner/*`, `/admin/*` | `components/layout/DashboardShell.tsx`, `layouts/OwnerLayout.tsx`, `layouts/AdminLayout.tsx` |
+| D | Khung đăng nhập / đăng ký | `/login`, `/register` | `layouts/AuthLayout.tsx` + `components/branding/CourtLines.tsx` |
 | E | Đăng nhập | `/login` | `features/auth/pages/LoginPage.tsx` |
 | F | Đăng ký | `/register` | `features/auth/pages/RegisterPage.tsx` |
 | G | Chờ duyệt chủ sân | `/owner/pending` | `features/auth/pages/OwnerPendingPage.tsx` |
@@ -19,7 +19,7 @@
 | I | Tổng quan quản trị | `/admin` | `features/admin-dashboard/pages/AdminDashboardPage.tsx` |
 | J | Quản lý người dùng | `/admin/users` | `features/admin-users/pages/AdminUsersPage.tsx` |
 | K | 404 / 403 / lỗi tải trang | `*`, `/403`, `errorElement` | `pages/NotFoundPage.tsx`, `ForbiddenPage.tsx`, `ErrorPage.tsx` |
-| L | Màn chờ khi khởi động | (bootstrap auth) | `common/ui/FullPageSpinner.tsx` |
+| L | Màn chờ khi khởi động | (bootstrap auth) | `components/feedback/FullPageSpinner.tsx` |
 
 ---
 
@@ -82,7 +82,7 @@ Mobile (< md):
 - Mobile (< md): panel cao 240, ẩn mô tả và chip môn, tiêu đề 40/42.
 - Panel phải: căn giữa theo cả hai chiều, nội dung là `<Outlet />` (LoginPage hoặc RegisterPage).
 
-**`SportIcon`** (`common/ui/SportIcon.tsx`, Hưng làm – Hiếu/Lâm/Dương dùng lại): prop `sport: Sport`, `size`; trả SVG nét 1.7 (`currentColor`) cho FOOTBALL (quả bóng ngũ giác), BADMINTON (quả cầu), PICKLEBALL (vợt + bóng), TENNIS (bóng tennis 2 đường cong), BASKETBALL, VOLLEYBALL; có `aria-label` = `SPORT_LABELS[sport]` khi đứng một mình. Antd icons không có icon môn thể thao nên tự vẽ (lấy path từ file preview).
+**`SportIcon`** (`components/icons/SportIcon.tsx`, Hưng làm – Hiếu/Lâm/Dương dùng lại): prop `sport: Sport`, `size`; trả SVG nét 1.7 (`currentColor`) cho FOOTBALL (quả bóng ngũ giác), BADMINTON (quả cầu), PICKLEBALL (vợt + bóng), TENNIS (bóng tennis 2 đường cong), BASKETBALL, VOLLEYBALL; có `aria-label` = `SPORT_LABELS[sport]` khi đứng một mình. Antd icons không có icon môn thể thao nên tự vẽ (lấy path từ file preview).
 - Đổi giữa đăng nhập và đăng ký: **panel trái không vẽ lại** (layout không remount), chỉ phần form cross-fade bằng view transition.
 
 ### Chuyển động vạch sân (khoảnh khắc duy nhất)
@@ -100,7 +100,7 @@ Mobile (< md):
 ### Component `CourtLines` (code mẫu – dùng chung cho AuthLayout và trang lỗi)
 
 ```tsx
-// common/ui/CourtLines.tsx
+// components/branding/CourtLines.tsx
 import styles from './CourtLines.module.css';
 
 interface CourtLinesProps { variant?: 'pitch' | 'out'; animated?: boolean; className?: string }
@@ -130,7 +130,7 @@ export function CourtLines({ variant = 'pitch', animated = false, className }: C
 ```
 
 ```css
-/* common/ui/CourtLines.module.css */
+/* components/branding/CourtLines.module.css */
 .root { display: block; height: 100%; width: auto; color: currentColor; }
 .line { fill: none; stroke: currentColor; stroke-width: 1.5; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
 .spot { fill: currentColor; }

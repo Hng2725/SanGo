@@ -8,9 +8,9 @@ import type {
   UpdateVenueInput,
 } from '@sango/shared';
 import { useDocumentTitle } from '@/common/hooks/useDocumentTitle';
-import { PageHeader } from '@/common/ui/PageHeader';
-import { FullPageSpinner } from '@/common/ui/FullPageSpinner';
-import { ErrorState } from '@/common/ui/ErrorState';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { FullPageSpinner } from '@/components/feedback/FullPageSpinner';
+import { ErrorState } from '@/components/feedback/ErrorState';
 import { LocationPicker } from '@/features/map';
 import {
   useCreateOwnerVenueMutation,

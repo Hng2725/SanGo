@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router';
-import { BrandLogo } from '@/common/ui/BrandLogo';
-import { CourtLines } from '@/common/ui/CourtLines';
-import { SportIcon } from '@/common/ui/SportIcon';
+import { BrandLogo } from '@/components/branding/BrandLogo';
+import { CourtLines } from '@/components/branding/CourtLines';
+import { SportIcon } from '@/components/icons/SportIcon';
 import { useLanguage } from '@/common/contexts/LanguageContext';
 const heroImages = import.meta.glob<string>('../assets/images/auth-hero.webp', {
   eager: true,

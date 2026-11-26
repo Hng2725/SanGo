@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { Breadcrumb, Button, Drawer, Grid, Layout, Menu, Tooltip } from 'antd';
 import { MenuFoldOutlined, MenuOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 import { Outlet, useLocation, useNavigate } from 'react-router';
-import { BrandLogo } from './BrandLogo';
+import { BrandLogo } from '@/components/branding/BrandLogo';
 import { useLanguage } from '@/common/contexts/LanguageContext';
 
 export interface ShellMenuItem {

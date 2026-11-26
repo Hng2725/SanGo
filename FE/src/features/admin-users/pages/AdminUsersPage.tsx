@@ -13,22 +13,21 @@ import {
   Skeleton,
   Table,
   Tabs,
-  Tag,
   Typography,
   type TableProps,
 } from 'antd';
 import { MoreOutlined, SearchOutlined } from '@ant-design/icons';
 import { useSearchParams } from 'react-router';
 import type { AdminUserQuery, UserDto } from '@sango/shared';
-import { ROLE_LABELS } from '@sango/shared';
 import { getErrorMessage } from '@/common/api/errors';
 import { useDebounce } from '@/common/hooks/useDebounce';
 import { useDocumentTitle } from '@/common/hooks/useDocumentTitle';
 import { formatDate } from '@/common/utils/format';
-import { ConfirmAction } from '@/common/ui/ConfirmAction';
-import { EmptyState } from '@/common/ui/EmptyState';
-import { PageHeader } from '@/common/ui/PageHeader';
-import { StatusDot } from '@/common/ui/StatusDot';
+import { ConfirmAction } from '@/components/feedback/ConfirmAction';
+import { EmptyState } from '@/components/feedback/EmptyState';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { StatusDot } from '@/components/feedback/StatusDot';
+import { UserRoleTag } from '../components/UserRoleTag';
 import {
   useApproveOwnerMutation,
   useCountsQuery,
@@ -47,9 +46,6 @@ function isTab(value: string | null): value is Tab {
 }
 function formatPhone(phone: string | null) {
   return phone?.replace(/^(0\d{3})(\d{3})(\d{3})$/, '$1 $2 $3') ?? '–';
-}
-function RoleTag({ role }: { role: UserDto['role'] }) {
-  return <Tag className={`user-role-tag user-role-${role.toLowerCase()}`}>{ROLE_LABELS[role]}</Tag>;
 }
 export default function AdminUsersPage() {
   useDocumentTitle('Người dùng');
@@ -181,7 +177,7 @@ export default function AdminUsersPage() {
     {
       title: 'Vai trò',
       dataIndex: 'role',
-      render: (role: UserDto['role']) => <RoleTag role={role} />,
+      render: (role: UserDto['role']) => <UserRoleTag role={role} />,
     },
     {
       title: 'Tài khoản',
@@ -397,7 +393,7 @@ export default function AdminUsersPage() {
                   <>
                     <div>{user.email}</div>
                     <div className="user-mobile-role">
-                      <RoleTag role={user.role} />
+                      <UserRoleTag role={user.role} />
                     </div>
                     <StatusDot
                       label={user.status === 'ACTIVE' ? 'Hoạt động' : 'Đã khóa'}

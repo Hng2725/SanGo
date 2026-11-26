@@ -88,7 +88,7 @@
 | Frontend | React 19, **Vite 8**, React Router 7 (data mode: `createBrowserRouter`, import từ `react-router`) | |
 | State | Redux Toolkit 2 (`createSlice`, `createAsyncThunk`) + **RTK Query** (server state) ; React Context (Theme, Language) | |
 | Form | react-hook-form 7 + @hookform/resolvers + Zod 3 | |
-| UI | **Ant Design 6** (`antd`, MIT) + `@ant-design/icons` (Outlined) + CSS Modules; font Be Vietnam Pro (Google Fonts) | theme "Vạch sân" trong `FE/src/common/theme`, component dự án trong `FE/src/common/ui`; thông báo bằng `App.useApp().message` – xem `docs/Thiết kế/` |
+| UI | **Ant Design 6** (`antd`, MIT) + `@ant-design/icons` (Outlined) + CSS Modules; font Be Vietnam Pro (Google Fonts) | theme "Vạch sân" trong `FE/src/common/theme`, component dự án trong `FE/src/components`; thông báo bằng `App.useApp().message` – xem `docs/Thiết kế/` |
 | Ngày giờ (FE hiển thị) | dayjs | logic nghiệp vụ dùng `shared/utils/time.ts` |
 | Virtualization | @tanstack/react-virtual 3 | |
 | Biểu đồ | recharts | doanh thu |
@@ -162,9 +162,9 @@ SanGo/
    └─ src/
       ├─ main.tsx
       ├─ app/                # store.ts, hooks.ts (useAppDispatch/useAppSelector), router.tsx, providers.tsx
+      ├─ components/         # branding/, feedback/, forms/, icons/, layout/: component UI dùng chung (Hưng)
       ├─ common/
       │  ├─ api/             # baseApi.ts (RTK Query createApi + baseQuery), errors.ts
-      │  ├─ ui/              # component dự án trên nền antd: BrandLogo, CourtLines, PageHeader, Section, StatusDot, EmptyState, RHF*, ConfirmAction, DashboardShell...
       │  ├─ theme/           # tokens.ts (bảng màu), antdTheme.ts (getAntdTheme)
       │  ├─ hooks/           # useDocumentTitle, useDebounce<T>, useLocalStorage<T>, useMediaQuery
       │  ├─ contexts/        # ThemeContext, LanguageContext (+ i18n dictionary)
@@ -949,7 +949,7 @@ Mỗi route gốc có `errorElement: <ErrorPage />`.
 
 ### 10.3. Component dùng chung quan trọng
 
-- `common/ui/*` (Hưng, dựa trên antd – chi tiết `docs/Thiết kế/00_HE_THONG_THIET_KE.md` mục 8): `BrandLogo`, `CourtLines`, `PageHeader`, `Section`, `StatusDot`, `EmptyState`, `FullPageSpinner`, `RHFInput`/`RHFPassword`/`RHFSelect`/`RHFTextArea`, `ConfirmAction`, `DashboardShell`. Các thành phần cơ bản (Button, Input, Table, Modal…) dùng trực tiếp từ antd.
+- `components/*` (Hưng, dựa trên antd – chi tiết `docs/Thiết kế/00_HE_THONG_THIET_KE.md` mục 8): `BrandLogo`, `CourtLines`, `PageHeader`, `Section`, `StatusDot`, `EmptyState`, `FullPageSpinner`, `RHFInput`/`RHFPassword`/`RHFSelect`/`RHFTextArea`, `ConfirmAction`, `DashboardShell`. Chia theo nhóm branding, feedback, forms, icons, layout; xem `FE/src/components/README.md`. Các thành phần cơ bản (Button, Input, Table, Modal…) dùng trực tiếp từ antd.
 - `features/availability` (Hiếu): `AvailabilityGrid` (Compound: `AvailabilityGrid.Toolbar`, `.WeekNav`, `.Header`, `.Body`, `.Legend`; Render Props `renderCell`) + hook `useCourtWeekAvailability`, `useSlotSelection<TSlot>`; component ghép sẵn `CourtWeekSchedule` (dùng ở `/venues/:slug`) và dùng lại ở `/owner/schedule`.
 - `features/map` (Lâm): `LocationPicker`, `VenueMap`, `VenuesMap`.
 - `features/reviews` (Dương): `VenueReviews` (nhúng vào trang chi tiết), `RatingStars`.

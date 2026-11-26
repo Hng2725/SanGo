@@ -30,8 +30,8 @@ import {
 } from '@sango/shared';
 import { formatCurrency } from '@/common/utils/format';
 import { useDocumentTitle } from '@/common/hooks/useDocumentTitle';
-import { FullPageSpinner } from '@/common/ui/FullPageSpinner';
-import { EmptyState } from '@/common/ui/EmptyState';
+import { FullPageSpinner } from '@/components/feedback/FullPageSpinner';
+import { EmptyState } from '@/components/feedback/EmptyState';
 import { VenueMap } from '@/features/map';
 import { useGetVenueDetailBySlugQuery } from '../api/venueDetailApi';
 
