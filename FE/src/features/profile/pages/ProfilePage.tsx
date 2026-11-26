@@ -1,6 +1,5 @@
 import { Alert, App, Avatar, Button, Form, Input } from 'antd';
 import { useForm, useWatch } from 'react-hook-form';
-import { CheckCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
@@ -12,10 +11,11 @@ import {
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { getErrorCode, getErrorMessage } from '@/common/api/errors';
 import { useDocumentTitle } from '@/common/hooks/useDocumentTitle';
-import { PageHeader } from '@/common/ui/PageHeader';
-import { Section } from '@/common/ui/Section';
-import { RHFInput, RHFPassword } from '@/common/ui/RHFFields';
-import { StatusDot } from '@/common/ui/StatusDot';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { Section } from '@/components/layout/Section';
+import { RHFInput, RHFPassword } from '@/components/forms/RHFFields';
+import { PasswordRequirements } from '@/components/forms/PasswordRequirements';
+import { StatusDot } from '@/components/feedback/StatusDot';
 import { selectCurrentUser, userUpdated } from '@/features/auth/model/authSlice';
 import { useChangePasswordMutation, useUpdateProfileMutation } from '../api/profileApi';
 
@@ -43,14 +43,6 @@ export default function ProfilePage() {
   const [update, updateState] = useUpdateProfileMutation();
   const [change, changeState] = useChangePasswordMutation();
   const newPassword = useWatch({ control: password.control, name: 'newPassword' });
-  const passwordHints = [
-    { label: 'Ít nhất 8 ký tự', valid: newPassword?.length >= 8 },
-    {
-      label: 'Chữ hoa và chữ thường',
-      valid: /[A-Z]/.test(newPassword ?? '') && /[a-z]/.test(newPassword ?? ''),
-    },
-    { label: 'Có chữ số', valid: /\d/.test(newPassword ?? '') },
-  ];
 
   const saveProfile = profile.handleSubmit(async (input) => {
     try {
@@ -141,14 +133,7 @@ export default function ProfilePage() {
                 label="Mật khẩu hiện tại"
               />
               <RHFPassword control={password.control} name="newPassword" label="Mật khẩu mới" />
-              <ul className="password-hints profile-password-hints">
-                {passwordHints.map((hint) => (
-                  <li key={hint.label} className={hint.valid ? 'valid' : ''}>
-                    {hint.valid ? <CheckCircleOutlined /> : <MinusCircleOutlined />}
-                    {hint.label}
-                  </li>
-                ))}
-              </ul>
+              <PasswordRequirements password={newPassword} className="profile-password-hints" />
               <RHFPassword
                 control={password.control}
                 name="confirmPassword"

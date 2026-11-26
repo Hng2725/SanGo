@@ -1,7 +1,7 @@
 import { Button } from 'antd';
 import { Link } from 'react-router';
 import { useDocumentTitle } from '@/common/hooks/useDocumentTitle';
-import { ErrorState } from '@/common/ui/ErrorState';
+import { ErrorState } from '@/components/feedback/ErrorState';
 
 export default function NotFoundPage() {
   useDocumentTitle('Không tìm thấy trang');

@@ -1,6 +1,6 @@
 import { AppstoreOutlined, MessageOutlined, TeamOutlined } from '@ant-design/icons';
-import { DashboardShell, type ShellMenuItem } from '@/common/ui/DashboardShell';
-import { HeaderActions } from '@/common/ui/HeaderActions';
+import { DashboardShell, type ShellMenuItem } from '@/components/layout/DashboardShell';
+import { HeaderActions } from '@/components/layout/HeaderActions';
 import { withAuthGuard } from '@/common/hoc/withAuthGuard';
 import { useLanguage } from '@/common/contexts/LanguageContext';
 import { useCountsQuery } from '@/features/admin-users/api/adminUsersApi';

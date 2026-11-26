@@ -3,7 +3,7 @@ import { Navigate, useLocation } from 'react-router';
 import type { Role } from '@sango/shared';
 import { useAppSelector } from '@/app/hooks';
 import { selectAuthStatus, selectCurrentUser } from '@/features/auth/model/authSlice';
-import { FullPageSpinner } from '@/common/ui/FullPageSpinner';
+import { FullPageSpinner } from '@/components/feedback/FullPageSpinner';
 interface AuthGuardOptions { roles?: readonly Role[]; allowUnapprovedOwner?: boolean }
 export function withAuthGuard<P extends object>(Component: ComponentType<P>, options: AuthGuardOptions = {}) {
   return function Guarded(props: P) {

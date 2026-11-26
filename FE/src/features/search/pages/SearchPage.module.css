@@ -1,0 +1,68 @@
+.page {
+  display: grid;
+  gap: 24px;
+  padding-bottom: 16px;
+}
+.page > :global(.page-header) {
+  margin-bottom: 0;
+}
+.results {
+  min-width: 0;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.toolbar h2 {
+  margin: 0;
+  color: var(--sg-ink);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+.toolbar p {
+  margin: 4px 0 0;
+  color: var(--sg-stone);
+  font-size: 13px;
+}
+.sort {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sort label {
+  white-space: nowrap;
+  color: var(--sg-stone);
+  font-weight: 400;
+}
+.sort :global(.ant-select) {
+  width: 216px;
+}
+.tabs > :global(.ant-tabs-nav) {
+  margin-bottom: 24px;
+}
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+@media (max-width: 575px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .sort {
+    justify-content: space-between;
+  }
+  .sort :global(.ant-select) {
+    width: 216px;
+    max-width: 100%;
+  }
+  .pagination {
+    justify-content: center;
+  }
+}

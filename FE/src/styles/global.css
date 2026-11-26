@@ -3,9 +3,11 @@
   --sg-primary: #1e7a4f;
   --sg-ink: #1b2420;
   --sg-stone: #5f6b66;
-  --sg-line: #dce3df;
-  --sg-base: #f4f7f5;
-  --sg-surface: #ffffff;
+  --sg-line: #d2ded5;
+  --sg-base: #eaf0eb;
+  --sg-surface: #f8faf7;
+  --sg-elevated: #ffffff;
+  --sg-selected: #e6f1e9;
   --sg-night: #0e3b28;
   --sg-lime: #c6f06a;
   --sg-warning: #b7791f;
@@ -18,13 +20,15 @@
 }
 [data-theme='dark'] {
   --sg-logout: #f38b8b;
-  --sg-primary: #3aa36f;
-  --sg-ink: #e4ebe7;
-  --sg-stone: #9aa6a0;
-  --sg-line: #26312c;
-  --sg-base: #0f1513;
-  --sg-surface: #161e1a;
-  --sg-night: #0b2a1d;
+  --sg-primary: #65c694;
+  --sg-ink: #e9f2ec;
+  --sg-stone: #adbcb2;
+  --sg-line: #455b4d;
+  --sg-base: #223128;
+  --sg-surface: #2b3c33;
+  --sg-elevated: #354b3e;
+  --sg-selected: #2b4938;
+  --sg-night: #183f2d;
 }
 
 html,
@@ -81,7 +85,7 @@ p {
 }
 .main-layout {
   min-height: 100dvh;
-  background: var(--sg-surface);
+  background: var(--sg-base);
 }
 .main-header {
   height: 64px;
@@ -754,12 +758,14 @@ p {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* Keep popup measurement synchronous: a nonzero transition also animates
+     Ant Design's temporary offscreen positions during alignment. */
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
+    animation-duration: 0s !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: 0s !important;
   }
   ::view-transition-group(*),
   ::view-transition-old(*),

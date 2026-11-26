@@ -55,7 +55,11 @@ npm run build
 - `BE/src/common`: guard, pipe, filter, interceptor, phân trang, event.
 - `BE/src/modules`: health, auth, users, admin, mail.
 - `FE/src/app`: store, providers, router.
+- `FE/src/components`: UI dùng chung, chia thành branding, feedback, forms, icons và layout; xem [hướng dẫn components](FE/src/components/README.md).
+- `FE/src/common`: API, hook, context, HOC, theme và tiện ích dùng chung.
+- `FE/src/layouts`: layout của route, kết hợp các component dùng chung.
 - `FE/src/features`: xác thực, hồ sơ, quản trị người dùng và dashboard.
+- `FE/src/features/<feature>/components`: component riêng của từng chức năng.
 - `docs/Đề bài`, `docs/Phân chia`, `docs/Thiết kế`: yêu cầu, phân công, giao diện.
 
 ## Triển khai

@@ -21,9 +21,9 @@ import {
 } from '@ant-design/icons';
 import type { VenueDto } from '@sango/shared';
 import { useDocumentTitle } from '@/common/hooks/useDocumentTitle';
-import { PageHeader } from '@/common/ui/PageHeader';
-import { EmptyState } from '@/common/ui/EmptyState';
-import { FullPageSpinner } from '@/common/ui/FullPageSpinner';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { EmptyState } from '@/components/feedback/EmptyState';
+import { FullPageSpinner } from '@/components/feedback/FullPageSpinner';
 import {
   useHideOwnerVenueMutation,
   useListOwnerVenuesQuery,
