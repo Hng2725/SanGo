@@ -1,0 +1,9 @@
+.admin-complaints-page { width: 100%; }
+.admin-complaints-toolbar, .admin-complaints-list { margin-bottom: 16px; border: 1px solid var(--sg-line); border-radius: 14px; background: var(--sg-surface); }
+.admin-complaints-items { display: grid; gap: 0; margin-bottom: 16px; }
+.admin-complaint-item { display: flex; justify-content: space-between; gap: 20px; align-items: center; padding: 18px 4px; border-bottom: 1px solid var(--sg-line); }
+.admin-complaint-item:last-child { border-bottom: 0; }
+.admin-complaint-main { min-width: 0; }
+.admin-complaint-heading { display: flex; align-items: center; gap: 10px; }
+.admin-complaint-heading h5 { margin: 0; }
+@media (max-width: 600px) { .admin-complaint-item { align-items: flex-start; flex-direction: column; gap: 10px; } }

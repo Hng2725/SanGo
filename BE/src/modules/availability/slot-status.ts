@@ -1,13 +1,7 @@
 import type { SlotTemplate } from './slot-generator';
 
 /** Trạng thái của một khung giờ, theo thứ tự ưu tiên giảm dần */
-export type SlotStatus =
-  | 'PAST'
-  | 'BOOKED'
-  | 'MAINTENANCE'
-  | 'HELD_BY_ME'
-  | 'HELD'
-  | 'AVAILABLE';
+export type SlotStatus = 'PAST' | 'BOOKED' | 'MAINTENANCE' | 'HELD_BY_ME' | 'HELD' | 'AVAILABLE';
 
 /** Thông tin booking gắn với khung (chỉ trả cho OWNER) */
 export interface SlotBookingInfo {
@@ -48,9 +42,7 @@ export function computeSlotStatus(
   }
 
   // Tìm lock khớp startAt
-  const lock = ctx.locks.find(
-    (l) => l.startAt.getTime() === slot.startAt.getTime(),
-  );
+  const lock = ctx.locks.find((l) => l.startAt.getTime() === slot.startAt.getTime());
 
   // 2. BOOKED: lock có bookingId
   if (lock?.bookingId) {
@@ -65,9 +57,7 @@ export function computeSlotStatus(
 
   // 3. MAINTENANCE: có block bảo trì chồng khung
   const inMaintenance = ctx.maintenance.some(
-    (m) =>
-      m.startAt.getTime() < slot.endAt.getTime() &&
-      m.endAt.getTime() > slot.startAt.getTime(),
+    (m) => m.startAt.getTime() < slot.endAt.getTime() && m.endAt.getTime() > slot.startAt.getTime(),
   );
   if (inMaintenance) {
     return { status: 'MAINTENANCE' };

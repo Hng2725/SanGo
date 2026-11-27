@@ -1,7 +1,4 @@
-import {
-  SLOT_MINUTES,
-  VN_UTC_OFFSET_MINUTES,
-} from '@sango/shared';
+import { SLOT_MINUTES, VN_UTC_OFFSET_MINUTES } from '@sango/shared';
 import { vnDateMinuteToUtc, addDaysToDateStr } from '@sango/shared';
 
 export interface OpeningHourLike {
@@ -36,9 +33,7 @@ export function generateDaySlots(
   const dayOfWeek = new Date(shiftedMs).getUTCDay();
 
   // Tìm cấu hình cho ngày này
-  const oh = openingHours.find(
-    (h) => h.dayOfWeek === dayOfWeek && !h.isClosed,
-  );
+  const oh = openingHours.find((h) => h.dayOfWeek === dayOfWeek && !h.isClosed);
   if (!oh) return [];
 
   const slots: SlotTemplate[] = [];

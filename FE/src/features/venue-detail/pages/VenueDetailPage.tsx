@@ -33,6 +33,8 @@ import { useDocumentTitle } from '@/common/hooks/useDocumentTitle';
 import { FullPageSpinner } from '@/components/feedback/FullPageSpinner';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { VenueMap } from '@/features/map';
+import { CourtWeekSchedule } from '@/features/availability/components/CourtWeekSchedule';
+import { VenueReviews } from '@/features/reviews';
 import { useGetVenueDetailBySlugQuery } from '../api/venueDetailApi';
 
 const DAY_NAMES = [
@@ -226,56 +228,25 @@ export const VenueDetailPage: React.FC = () => {
 
           <Divider />
 
-          {/* Khối Lưới lịch & Đặt sân (Placeholder cho Hiếu) */}
+          {/* Khối Lưới lịch & Đặt sân */}
           <div style={{ marginBottom: 36 }}>
             <Typography.Title level={4}>
               <CalendarOutlined style={{ marginRight: 8 }} />
               Lịch trống & Đặt sân
             </Typography.Title>
-            <Card
-              style={{
-                background: token.colorFillAlter,
-                border: `1px dashed ${token.colorBorder}`,
-                textAlign: 'center',
-                padding: '24px 0',
-              }}
-            >
-              {/* TODO(Lâm): nhúng component khi merge */}
-              <div data-testid="court-week-schedule-placeholder">
-                <Typography.Text strong style={{ fontSize: 15, display: 'block' }}>
-                  Lưới đặt sân theo tuần (CourtWeekSchedule)
-                </Typography.Text>
-                <Typography.Text type="secondary" style={{ fontSize: 13 }}>
-                  Hiển thị các khung giờ trống và cho phép chọn khung để đặt trực tiếp.
-                </Typography.Text>
-              </div>
-            </Card>
+            <CourtWeekSchedule
+              venue={{ id: venue.id, slug: venue.slug, name: venue.name }}
+              courts={venue.courts}
+            />
           </div>
 
-          {/* Khối Đánh giá (Placeholder cho Dương) */}
+          {/* Khối Đánh giá */}
           <div>
             <Typography.Title level={4}>
               <StarFilled style={{ marginRight: 8, color: token.colorWarning }} />
               Đánh giá từ khách hàng ({venue.reviewCount})
             </Typography.Title>
-            <Card
-              style={{
-                background: token.colorFillAlter,
-                border: `1px dashed ${token.colorBorder}`,
-                textAlign: 'center',
-                padding: '24px 0',
-              }}
-            >
-              {/* TODO(Lâm): nhúng component khi merge */}
-              <div data-testid="venue-reviews-placeholder">
-                <Typography.Text strong style={{ fontSize: 15, display: 'block' }}>
-                  Đánh giá cụm sân (VenueReviews)
-                </Typography.Text>
-                <Typography.Text type="secondary" style={{ fontSize: 13 }}>
-                  Khách hàng sau khi hoàn thành đơn đặt sân có thể gửi nhận xét và chấm sao tại đây.
-                </Typography.Text>
-              </div>
-            </Card>
+            <VenueReviews venueId={venue.id} />
           </div>
         </Col>
 

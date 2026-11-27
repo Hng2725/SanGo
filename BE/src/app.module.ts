@@ -26,6 +26,11 @@ import { SearchModule } from './modules/search/search.module';
 import { AvailabilityModule } from './modules/availability/availability.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
 import { HoldsModule } from './modules/holds/holds.module';
+import { BookingLifecycleModule } from './modules/booking-lifecycle/booking-lifecycle.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
+import { ComplaintsModule } from './modules/complaints/complaints.module';
+import { StatsModule } from './modules/stats/stats.module';
+import { RecurringModule } from './modules/recurring/recurring.module';
 
 @Module({
   imports: [
@@ -58,6 +63,11 @@ import { HoldsModule } from './modules/holds/holds.module';
     BookingsModule,
     HoldsModule,
     AvailabilityModule,
+    BookingLifecycleModule,
+    ReviewsModule,
+    ComplaintsModule,
+    StatsModule,
+    RecurringModule,
   ],
   controllers: [AppController],
   providers: [

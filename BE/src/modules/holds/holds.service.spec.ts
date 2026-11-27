@@ -15,7 +15,14 @@ const mockCourtActive = {
 };
 const mockOpeningHours = [
   // Thursday dayOfWeek=4, 06:00-22:00
-  { id: '1', venueId: 'venue-1', dayOfWeek: 4, isClosed: false, openMinute: 360, closeMinute: 1320 },
+  {
+    id: '1',
+    venueId: 'venue-1',
+    dayOfWeek: 4,
+    isClosed: false,
+    openMinute: 360,
+    closeMinute: 1320,
+  },
 ];
 
 describe('HoldsService', () => {
@@ -51,7 +58,9 @@ describe('HoldsService', () => {
     };
 
     prisma = {
-      $transaction: jest.fn().mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => fn(txMock)),
+      $transaction: jest
+        .fn()
+        .mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => fn(txMock)),
       bookingHold: {
         findUnique: jest.fn(),
         delete: jest.fn().mockResolvedValue(undefined),

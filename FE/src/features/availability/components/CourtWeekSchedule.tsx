@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import { Alert, Button, Card, message, Space, Tabs, Tag, Typography } from 'antd';
+import { CompressOutlined, ExpandOutlined } from '@ant-design/icons';
 import {
   MAX_SLOTS_PER_BOOKING,
   SLOT_MINUTES,
@@ -25,6 +26,7 @@ import { useCourtWeekAvailability } from '../hooks/useCourtWeekAvailability';
 import { useSlotSelection } from '../hooks/useSlotSelection';
 import { AvailabilityGrid, SlotCell } from './AvailabilityGrid';
 import { availabilityApi } from '../api/availabilityApi';
+import './AvailabilitySchedule.css';
 
 export interface BookingDraftPayload {
   venue: { id: string; slug: string; name: string };
@@ -60,6 +62,7 @@ export const CourtWeekSchedule: React.FC<CourtWeekScheduleProps> = ({
   const [selectedCourtId, setSelectedCourtId] = useState<string>(
     () => courts[0]?.id ?? '',
   );
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     if (courts.length > 0 && !courts.some((c) => c.id === selectedCourtId)) {
@@ -232,7 +235,7 @@ export const CourtWeekSchedule: React.FC<CourtWeekScheduleProps> = ({
   }
 
   return (
-    <Card variant="outlined">
+    <Card className={`availability-schedule${isExpanded ? ' availability-schedule-expanded' : ''}`} variant="outlined" extra={<Button type="text" icon={isExpanded ? <CompressOutlined /> : <ExpandOutlined />} onClick={() => setIsExpanded((value) => !value)}>{isExpanded ? 'Thu nhỏ' : 'Phóng to lịch'}</Button>}>
       <Tabs
         activeKey={currentCourt?.id}
         onChange={handleCourtChange}

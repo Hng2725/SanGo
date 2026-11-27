@@ -1,0 +1,33 @@
+.venue-reviews {
+  padding: 20px;
+  border: 1px solid var(--sg-line);
+  border-radius: 14px;
+  background: var(--sg-surface);
+}
+.venue-reviews > .ant-space-item:first-child {
+  width: 100%;
+}
+.venue-reviews .ant-progress {
+  width: min(260px, 40vw);
+  margin: 0;
+}
+.rating-star-button { border: 0; background: transparent; cursor: pointer; padding: 2px; color: #d48806; line-height: 1; }
+.rating-star-button:disabled { cursor: default; }
+.review-distribution { display: grid; gap: 6px; min-width: min(360px, 100%); }
+.review-distribution-row { display: grid; grid-template-columns: 48px minmax(100px, 1fr) 32px; gap: 8px; align-items: center; }
+.review-distribution-label, .review-distribution-count { color: var(--sg-muted); font-size: 13px; white-space: nowrap; }
+.review-distribution-count { text-align: right; }
+.venue-reviews .ant-list {
+  width: 100%;
+}
+.venue-reviews .ant-list-item {
+  padding: 16px 4px;
+}
+.venue-reviews .ant-list-item:last-child {
+  padding-bottom: 4px;
+}
+@media (max-width: 575px) {
+  .venue-reviews { padding: 14px; }
+  .venue-reviews .ant-progress { width: 100%; }
+  .review-distribution { min-width: 100%; }
+}

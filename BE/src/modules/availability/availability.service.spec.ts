@@ -12,15 +12,17 @@ function makeDate(isoOrVn: string): Date {
 }
 
 /** Tạo SlotLock giả với booking kèm theo */
-function makeLock(overrides: Partial<{
-  courtId: string;
-  startAt: Date;
-  bookingId: string | null;
-  holdId: string | null;
-  expiresAt: Date | null;
-  hold: { userId: string } | null;
-  booking: { id: string; code: string; status: string; customer: { fullName: string } } | null;
-}> = {}) {
+function makeLock(
+  overrides: Partial<{
+    courtId: string;
+    startAt: Date;
+    bookingId: string | null;
+    holdId: string | null;
+    expiresAt: Date | null;
+    hold: { userId: string } | null;
+    booking: { id: string; code: string; status: string; customer: { fullName: string } } | null;
+  }> = {},
+) {
   return {
     id: 'lock-1',
     courtId: 'court-1',
@@ -115,10 +117,17 @@ describe('AvailabilityService', () => {
     };
 
     const pricingMock = {
-      getCourtPricing: jest.fn().mockResolvedValue(new Map([['court-1', {
-        basePricePerHour: 100000,
-        rules: [],
-      }]])),
+      getCourtPricing: jest.fn().mockResolvedValue(
+        new Map([
+          [
+            'court-1',
+            {
+              basePricePerHour: 100000,
+              rules: [],
+            },
+          ],
+        ]),
+      ),
     };
 
     const maintenanceMock = {
@@ -232,9 +241,7 @@ describe('AvailabilityService', () => {
       const futureWeekStart = '2026-11-30';
 
       const custResult = await service.getCourtWeek('court-1', futureWeekStart, customerViewer());
-      const bookedSlot = custResult.days
-        .flatMap((d) => d.slots)
-        .find((s) => s.status === 'BOOKED');
+      const bookedSlot = custResult.days.flatMap((d) => d.slots).find((s) => s.status === 'BOOKED');
 
       if (bookedSlot) {
         expect(bookedSlot.booking).toBeUndefined();
@@ -294,7 +301,7 @@ describe('AvailabilityService', () => {
       await service.getCourtWeek('court-1', weekStart, ownerViewer());
       expect(pricingService.getCourtPricing).toHaveBeenCalledTimes(1);
       expect(maintenanceService.findOverlapping).toHaveBeenCalledTimes(1);
-      expect((prisma.slotLock.findMany as jest.Mock)).toHaveBeenCalledTimes(1);
+      expect(prisma.slotLock.findMany as jest.Mock).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -399,7 +406,7 @@ describe('AvailabilityService', () => {
       await service.getVenueDay('venue-1', date, ownerViewer());
       expect(pricingService.getCourtPricing).toHaveBeenCalledTimes(1);
       expect(maintenanceService.findOverlapping).toHaveBeenCalledTimes(1);
-      expect((prisma.slotLock.findMany as jest.Mock)).toHaveBeenCalledTimes(1);
+      expect(prisma.slotLock.findMany as jest.Mock).toHaveBeenCalledTimes(1);
     });
 
     it('returns empty courts array when venue has no active courts', async () => {

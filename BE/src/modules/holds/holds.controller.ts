@@ -11,20 +11,14 @@ export class HoldsController {
   @Post()
   @Roles('CUSTOMER')
   @HttpCode(HttpStatus.CREATED)
-  async create(
-    @CurrentUser() user: AuthUser,
-    @ZodBody(createHoldSchema) input: CreateHoldInput,
-  ) {
+  async create(@CurrentUser() user: AuthUser, @ZodBody(createHoldSchema) input: CreateHoldInput) {
     return this.holdsService.createHold(user.id, input);
   }
 
   @Delete(':id')
   @Roles('CUSTOMER')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(
-    @CurrentUser() user: AuthUser,
-    @Param('id') id: string,
-  ) {
+  async remove(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     await this.holdsService.deleteHold(id, user.id);
   }
 }

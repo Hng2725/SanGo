@@ -18,11 +18,25 @@ const mockCourtActive = {
 };
 const mockOpeningHours = [
   // Thursday dayOfWeek=4, 06:00-22:00
-  { id: '1', venueId: 'venue-1', dayOfWeek: 4, isClosed: false, openMinute: 360, closeMinute: 1320 },
+  {
+    id: '1',
+    venueId: 'venue-1',
+    dayOfWeek: 4,
+    isClosed: false,
+    openMinute: 360,
+    closeMinute: 1320,
+  },
 ];
 const mockQuote = {
   total: 150000,
-  breakdown: [{ startAt: '2030-11-28T04:00:00.000Z', endAt: '2030-11-28T05:00:00.000Z', price: 150000, label: null }],
+  breakdown: [
+    {
+      startAt: '2030-11-28T04:00:00.000Z',
+      endAt: '2030-11-28T05:00:00.000Z',
+      price: 150000,
+      label: null,
+    },
+  ],
 };
 // 2030-11-28 is a Thursday; 11:00 VN = 04:00 UTC
 const makeInput = (overrides = {}) => ({
@@ -98,7 +112,9 @@ describe('BookingsService', () => {
     };
 
     prisma = {
-      $transaction: jest.fn().mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => fn(txMock)),
+      $transaction: jest
+        .fn()
+        .mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => fn(txMock)),
       booking: {
         findUniqueOrThrow: jest.fn().mockResolvedValue(mockBookingWithRelations),
       },
@@ -169,11 +185,13 @@ describe('BookingsService', () => {
       meta: { target: ['code'] },
     });
     let callCount = 0;
-    (prisma.$transaction as jest.Mock).mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
-      callCount++;
-      if (callCount === 1) throw p2002Code;
-      return fn(txMock);
-    });
+    (prisma.$transaction as jest.Mock).mockImplementation(
+      async (fn: (tx: unknown) => Promise<unknown>) => {
+        callCount++;
+        if (callCount === 1) throw p2002Code;
+        return fn(txMock);
+      },
+    );
     const result = await service.createBooking('cust-1', makeInput());
     expect(result.id).toBe('booking-1');
     expect(callCount).toBe(2);
@@ -190,9 +208,9 @@ describe('BookingsService', () => {
     };
     (txMock.bookingHold as { findUnique: jest.Mock }).findUnique.mockResolvedValue(expiredHold);
 
-    await expect(
-      service.createBooking('cust-1', makeInput({ holdId: 'hold-1' })),
-    ).rejects.toThrow(AppException);
+    await expect(service.createBooking('cust-1', makeInput({ holdId: 'hold-1' }))).rejects.toThrow(
+      AppException,
+    );
   });
 
   it('should throw 409 HOLD_EXPIRED when hold belongs to another user', async () => {
@@ -206,8 +224,8 @@ describe('BookingsService', () => {
     };
     (txMock.bookingHold as { findUnique: jest.Mock }).findUnique.mockResolvedValue(otherUserHold);
 
-    await expect(
-      service.createBooking('cust-1', makeInput({ holdId: 'hold-1' })),
-    ).rejects.toThrow(AppException);
+    await expect(service.createBooking('cust-1', makeInput({ holdId: 'hold-1' }))).rejects.toThrow(
+      AppException,
+    );
   });
 });

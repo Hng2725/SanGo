@@ -5,10 +5,7 @@ import { VN_UTC_OFFSET_MINUTES } from '@sango/shared';
  * @param now Thời điểm hiện tại (UTC)
  * @param rand Hàm sinh số ngẫu nhiên [0, 1) – mặc định Math.random
  */
-export function generateBookingCode(
-  now: Date,
-  rand: () => number = Math.random,
-): string {
+export function generateBookingCode(now: Date, rand: () => number = Math.random): string {
   // Chuyển sang giờ VN
   const vnMs = now.getTime() + VN_UTC_OFFSET_MINUTES * 60_000;
   const vn = new Date(vnMs);

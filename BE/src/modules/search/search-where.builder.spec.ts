@@ -76,10 +76,7 @@ describe('buildSearchWhere', () => {
     // 08:00 VN = 01:00 UTC ngày 2026-11-27
     expect(slotLock.startAt.gte).toEqual(new Date('2026-11-27T01:00:00.000Z'));
     expect(slotLock.startAt.lt).toEqual(new Date('2026-11-27T03:00:00.000Z'));
-    expect(slotLock.OR).toEqual([
-      { bookingId: { not: null } },
-      { expiresAt: { gt: NOW } },
-    ]);
+    expect(slotLock.OR).toEqual([{ bookingId: { not: null } }, { expiresAt: { gt: NOW } }]);
 
     // maintenanceBlocks.none phải lọc chồng lấp [fromUtc, toUtc)
     const maint = courtsCondition.maintenanceBlocks.none;
