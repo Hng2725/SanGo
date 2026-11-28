@@ -1,0 +1,88 @@
+.owner-bookings-viewport {
+  width: 100%;
+  border: 1px solid var(--sg-line);
+  border-radius: 12px;
+  background: var(--sg-surface);
+}
+.owner-bookings-table { overflow-x: auto; border: 1px solid var(--sg-line); border-radius: 10px; }
+.owner-bookings-table-head, .owner-bookings-table-row { display: grid; grid-template-columns: 130px minmax(160px, 1fr) minmax(190px, 1.2fr) 110px minmax(150px, .8fr) 330px; gap: 14px; align-items: center; min-width: 1180px; padding: 13px 16px; }
+.owner-bookings-table-head { color: var(--sg-muted); background: #f4f8f5; font-size: 12px; font-weight: 700; }
+.owner-bookings-table-row { min-height: 76px; border-top: 1px solid var(--sg-line); background: var(--sg-surface); }
+.owner-bookings-table-row:hover, .owner-bookings-table-row.is-highlighted { background: #f7fbf8; }
+.owner-bookings-table-row small { display: block; margin-top: 4px; color: var(--sg-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.owner-booking-code { padding: 0; border: 0; color: var(--sg-primary); background: transparent; font-weight: 700; text-align: left; cursor: pointer; }
+.owner-booking-status { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.owner-bookings-table-row > .ant-space { flex-wrap: nowrap; }
+.owner-bookings-page { width: 100%; }
+.owner-bookings-filter-card, .owner-bookings-list-card { border: 1px solid var(--sg-line); border-radius: 14px; background: var(--sg-surface); }
+.owner-bookings-filter-card { margin-bottom: 16px; }
+.owner-bookings-filters { width: 100%; }
+.owner-bookings-filters .ant-input { width: 180px; }
+.owner-bookings-filters .owner-filter-search { width: min(320px, 100%); }
+.owner-bookings-filters .owner-filter-venue { min-width: 180px; }
+.owner-bookings-pagination { display: flex; justify-content: flex-end; padding-top: 16px; }
+.owner-booking-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  min-height: 88px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--sg-line);
+  background: var(--sg-surface);
+}
+.owner-booking-row:last-child { border-bottom: 0; }
+.owner-booking-summary {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(180px, 1.4fr) minmax(180px, 1.4fr) minmax(90px, auto);
+  align-items: center;
+  gap: 8px 16px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  color: var(--sg-ink);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.owner-booking-summary:hover strong,
+.owner-booking-summary:focus-visible strong { color: var(--sg-primary); }
+.owner-booking-summary span,
+.owner-booking-summary strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.owner-booking-row > .ant-space { justify-content: flex-end; }
+.booking-recurring-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: #166534;
+  background: #dcfce7;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+@media (max-width: 900px) {
+  .owner-booking-row { grid-template-columns: 1fr; gap: 8px; }
+  .owner-booking-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .owner-booking-row > .ant-space { justify-content: flex-start; }
+}
+@media (max-width: 600px) {
+  .owner-bookings-filter-card, .owner-bookings-list-card { border-radius: 10px; }
+  .owner-bookings-filters .ant-input, .owner-bookings-filters .owner-filter-search, .owner-bookings-filters .owner-filter-venue { width: 100%; min-width: 0; }
+  .owner-bookings-pagination { justify-content: center; overflow-x: auto; }
+}
+[data-theme='dark'] .owner-bookings-table,
+[data-theme='dark'] .owner-bookings-filter-card,
+[data-theme='dark'] .owner-bookings-list-card { background: var(--sg-surface); border-color: var(--sg-line); }
+[data-theme='dark'] .owner-bookings-table-head { color: var(--sg-ink); background: var(--sg-elevated); }
+[data-theme='dark'] .owner-bookings-table-row { background: var(--sg-surface); border-color: var(--sg-line); color: var(--sg-ink); }
+[data-theme='dark'] .owner-bookings-table-row:hover,
+[data-theme='dark'] .owner-bookings-table-row.is-highlighted { background: var(--sg-selected); }
+[data-theme='dark'] .owner-booking-code { color: var(--sg-primary); }
+[data-theme='dark'] .owner-bookings-table-row small { color: var(--sg-stone); }
+[data-theme='dark'] .booking-recurring-badge { color: #b9efca; background: #24553e; }

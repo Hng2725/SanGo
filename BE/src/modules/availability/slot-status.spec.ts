@@ -1,8 +1,4 @@
-import {
-  computeSlotStatus,
-  SlotBookingInfo,
-  SlotStatusContext,
-} from './slot-status';
+import { computeSlotStatus, SlotBookingInfo, SlotStatusContext } from './slot-status';
 import type { SlotTemplate } from './slot-generator';
 
 /** Helper: tạo SlotTemplate nhanh */
@@ -17,11 +13,7 @@ function makeSlot(startIso: string, endIso: string, minuteOfDay = 600): SlotTemp
 // Khung 10:00–11:00 VN ngày 2026-11-26
 // 10:00 VN = 03:00 UTC → 2026-11-26T03:00:00.000Z
 // 11:00 VN = 04:00 UTC → 2026-11-26T04:00:00.000Z
-const futureSlot = makeSlot(
-  '2026-11-26T03:00:00.000Z',
-  '2026-11-26T04:00:00.000Z',
-  600,
-);
+const futureSlot = makeSlot('2026-11-26T03:00:00.000Z', '2026-11-26T04:00:00.000Z', 600);
 
 const now = new Date('2026-11-25T10:00:00.000Z'); // trước futureSlot
 
@@ -35,10 +27,7 @@ const bookingInfo: SlotBookingInfo = {
 describe('computeSlotStatus', () => {
   describe('PAST', () => {
     it('trả PAST khi startAt <= now', () => {
-      const pastSlot = makeSlot(
-        '2026-11-25T02:00:00.000Z',
-        '2026-11-25T03:00:00.000Z',
-      );
+      const pastSlot = makeSlot('2026-11-25T02:00:00.000Z', '2026-11-25T03:00:00.000Z');
       const ctx: SlotStatusContext = {
         now: new Date('2026-11-25T02:00:00.000Z'),
         locks: [],

@@ -7,10 +7,7 @@ import { vnDateMinuteToUtc } from '@sango/shared';
  * @param query - Đã được validate bởi searchVenuesQuerySchema
  * @param now  - Thời điểm hiện tại (dùng để kiểm tra hold chưa hết hạn)
  */
-export function buildSearchWhere(
-  query: SearchVenuesQuery,
-  now: Date,
-): Prisma.VenueWhereInput {
+export function buildSearchWhere(query: SearchVenuesQuery, now: Date): Prisma.VenueWhereInput {
   const where: Prisma.VenueWhereInput = {
     status: 'ACTIVE',
   };
@@ -54,10 +51,7 @@ export function buildSearchWhere(
     // Lọc không có slotLock chồng [fromUtc, toUtc)
     const noSlotLock: Prisma.SlotLockWhereInput = {
       startAt: { gte: fromUtc, lt: toUtc },
-      OR: [
-        { bookingId: { not: null } },
-        { expiresAt: { gt: now } },
-      ],
+      OR: [{ bookingId: { not: null } }, { expiresAt: { gt: now } }],
     };
 
     // Lọc không có maintenanceBlock chồng

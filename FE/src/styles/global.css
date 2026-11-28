@@ -2210,6 +2210,7 @@ p {
   width: 32px;
   height: 32px;
 }
+
 @media (max-width: 575px) {
   .pending-page {
     margin: 32px auto 64px;

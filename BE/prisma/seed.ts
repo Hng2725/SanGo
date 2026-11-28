@@ -2,6 +2,8 @@ import { PrismaClient } from '@prisma/client';
 import { seedUsers } from './seed/users.seed';
 import { seedVenues } from './seed/venues.seed';
 import { seedAdminDemo } from './seed/admin-demo.seed';
+import { seedBookings } from './seed/bookings.seed';
+import { seedReviewsAndComplaints } from './seed/reviews-complaints.seed';
 const prisma = new PrismaClient();
 async function main(): Promise<void> {
   await prisma.$transaction(async (tx) => {
@@ -21,7 +23,8 @@ async function main(): Promise<void> {
   await seedUsers(prisma);
   await seedVenues(prisma);
   await seedAdminDemo(prisma);
-  // TODO(Dương): gọi seedBookings(prisma), seedReviewsAndComplaints(prisma) sau khi module đơn được merge.
+  await seedBookings(prisma);
+  await seedReviewsAndComplaints(prisma);
 }
 main()
   .catch((error) => {

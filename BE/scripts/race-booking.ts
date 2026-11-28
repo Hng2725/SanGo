@@ -69,7 +69,9 @@ async function main() {
     console.error('❌ Could not fetch venues');
     process.exit(1);
   }
-  const venuesBody = (await venuesRes.json()) as { data: { items: { id: string; slug: string }[] } };
+  const venuesBody = (await venuesRes.json()) as {
+    data: { items: { id: string; slug: string }[] };
+  };
   const venue = venuesBody.data.items[0];
   if (!venue) {
     console.error('❌ No venues found in DB');
@@ -97,9 +99,7 @@ async function main() {
     contactPhone: '0901234567',
   };
 
-  const results = await Promise.all(
-    tokens.map((token) => createBooking(token, bookingBody)),
-  );
+  const results = await Promise.all(tokens.map((token) => createBooking(token, bookingBody)));
 
   // 4. Tally results
   const counts: Record<number, number> = {};
@@ -117,7 +117,9 @@ async function main() {
   if (created === 1 && conflict === N - 1) {
     console.log(`\n✅ PASS: Exactly 1 booking created, ${N - 1} conflicts`);
   } else {
-    console.log(`\n❌ FAIL: Expected 1×201 and ${N - 1}×409, got ${created}×201 and ${conflict}×409`);
+    console.log(
+      `\n❌ FAIL: Expected 1×201 and ${N - 1}×409, got ${created}×201 and ${conflict}×409`,
+    );
     process.exit(1);
   }
 }

@@ -16,6 +16,11 @@ import { ownerScheduleRoutes } from '@/features/owner-schedule/routes';
 import { pricingRoutes } from '@/features/pricing/routes';
 import { maintenanceRoutes } from '@/features/maintenance/routes';
 import { bookingRoutes } from '@/features/booking/routes';
+import { myBookingsRoutes } from '@/features/my-bookings/routes';
+import { ownerBookingsRoutes } from '@/features/owner-bookings/routes';
+import { complaintRoutes, adminComplaintRoutes } from '@/features/complaints/routes';
+import { recurringRoutes } from '@/features/recurring/routes';
+import { ownerReviewsRoutes } from '@/features/reviews/routes';
 
 export const router = createBrowserRouter([
   {
@@ -35,7 +40,7 @@ export const router = createBrowserRouter([
       ...searchRoutes,
       ...venueDetailRoutes,
       ...bookingRoutes,
-      { path: 'me', element: <CustomerLayout />, children: [...profileRoutes] },
+      { path: 'me', element: <CustomerLayout />, children: [...profileRoutes, ...myBookingsRoutes, ...complaintRoutes, ...recurringRoutes] },
       {
         path: '*',
         lazy: () =>
@@ -51,19 +56,20 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        lazy: () =>
-          import('@/pages/ComingSoonPage').then((module) => ({ Component: module.default })),
+        lazy: () => import('@/features/stats/pages/OwnerDashboardPage').then((module) => ({ Component: module.default })),
       },
       ...ownerVenueRoutes,
       ...ownerScheduleRoutes,
       ...pricingRoutes,
       ...maintenanceRoutes,
+      ...ownerBookingsRoutes,
+      ...ownerReviewsRoutes,
     ],
   },
   {
     path: 'admin',
     element: <AdminLayout />,
     errorElement: <ErrorPage />,
-    children: [...adminDashboardRoutes, ...adminUserRoutes],
+    children: [...adminDashboardRoutes, ...adminUserRoutes, ...adminComplaintRoutes],
   },
 ]);

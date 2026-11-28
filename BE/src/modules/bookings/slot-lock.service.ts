@@ -49,10 +49,7 @@ export class SlotLockService {
   /**
    * Giải phóng khung khi đơn CANCELLED/REJECTED.
    */
-  async releaseBooking(
-    tx: Prisma.TransactionClient,
-    bookingId: string,
-  ): Promise<void> {
+  async releaseBooking(tx: Prisma.TransactionClient, bookingId: string): Promise<void> {
     await tx.slotLock.deleteMany({ where: { bookingId } });
   }
 
@@ -63,7 +60,9 @@ export class SlotLockService {
     courtId: string,
     startAts: Date[],
     tx?: Prisma.TransactionClient,
-  ): Promise<{ startAt: Date; bookingId: string | null; holdId: string | null; expiresAt: Date | null }[]> {
+  ): Promise<
+    { startAt: Date; bookingId: string | null; holdId: string | null; expiresAt: Date | null }[]
+  > {
     if (startAts.length === 0) return [];
     const db = tx ?? this.prisma;
     return db.slotLock.findMany({

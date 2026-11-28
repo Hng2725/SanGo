@@ -23,10 +23,7 @@ export class HoldsService {
     private readonly slotLockService: SlotLockService,
   ) {}
 
-  async createHold(
-    userId: string,
-    input: CreateHoldInput,
-  ): Promise<HoldDto> {
+  async createHold(userId: string, input: CreateHoldInput): Promise<HoldDto> {
     const startAt = new Date(input.startAt);
     const endAt = new Date(input.endAt);
     const now = new Date();
@@ -44,7 +41,11 @@ export class HoldsService {
             include: { venue: { select: { id: true, status: true } } },
           });
           if (!court || !court.isActive || court.venue.status !== 'ACTIVE') {
-            throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND', 'Sân con không tồn tại hoặc đã ngừng hoạt động');
+            throw new AppException(
+              HttpStatus.NOT_FOUND,
+              'NOT_FOUND',
+              'Sân con không tồn tại hoặc đã ngừng hoạt động',
+            );
           }
 
           // 3. assertSlotsBookable
@@ -115,7 +116,11 @@ export class HoldsService {
     }
 
     if (hold.userId !== userId) {
-      throw new AppException(HttpStatus.FORBIDDEN, 'FORBIDDEN', 'Bạn không có quyền xóa giữ chỗ này');
+      throw new AppException(
+        HttpStatus.FORBIDDEN,
+        'FORBIDDEN',
+        'Bạn không có quyền xóa giữ chỗ này',
+      );
     }
 
     await this.prisma.bookingHold.delete({ where: { id: holdId } });

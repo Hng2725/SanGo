@@ -84,10 +84,7 @@ export class BookingsService {
   /**
    * Kiểm tra 1 slot có nằm trong giờ mở cửa (kể cả ca qua đêm ngày trước).
    */
-  private isWithinOpeningHours(
-    slotStart: Date,
-    openingHours: readonly OpeningHourLike[],
-  ): boolean {
+  private isWithinOpeningHours(slotStart: Date, openingHours: readonly OpeningHourLike[]): boolean {
     const { dateStr } = toVnParts(slotStart);
 
     // Kiểm tra ngày hoạt động chính
@@ -127,14 +124,24 @@ export class BookingsService {
     });
 
     if (!court || !court.isActive) {
-      throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND', 'Sân con không tồn tại hoặc đã ngừng hoạt động');
+      throw new AppException(
+        HttpStatus.NOT_FOUND,
+        'NOT_FOUND',
+        'Sân con không tồn tại hoặc đã ngừng hoạt động',
+      );
     }
     if (court.venue.status !== 'ACTIVE') {
       throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND', 'Cụm sân không hoạt động');
     }
 
     // 2. assertSlotsBookable
-    await this.assertSlotsBookable(tx, { id: court.id, venueId: court.venueId }, startAt, endAt, now);
+    await this.assertSlotsBookable(
+      tx,
+      { id: court.id, venueId: court.venueId },
+      startAt,
+      endAt,
+      now,
+    );
 
     // 3. Xử lý hold
     const slotStarts = enumerateSlotStarts(startAt, endAt);
@@ -156,7 +163,11 @@ export class BookingsService {
         hold.startAt.getTime() !== startAt.getTime() ||
         hold.endAt.getTime() !== endAt.getTime()
       ) {
-        throw new AppException(HttpStatus.CONFLICT, 'HOLD_EXPIRED', 'Giữ chỗ không khớp với đơn đặt');
+        throw new AppException(
+          HttpStatus.CONFLICT,
+          'HOLD_EXPIRED',
+          'Giữ chỗ không khớp với đơn đặt',
+        );
       }
     }
 
@@ -211,10 +222,7 @@ export class BookingsService {
   /**
    * Tạo booking: chạy transaction, bắt P2002, emit event, trả BookingDto.
    */
-  async createBooking(
-    customerId: string,
-    input: CreateBookingInput,
-  ): Promise<BookingDto> {
+  async createBooking(customerId: string, input: CreateBookingInput): Promise<BookingDto> {
     let bookingId: string;
 
     const tryCreate = async (): Promise<string> => {

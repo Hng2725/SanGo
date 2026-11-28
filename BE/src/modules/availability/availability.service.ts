@@ -1,5 +1,9 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import type { AuthUser, AvailabilitySlot, SlotBookingInfo as SharedSlotBookingInfo } from '@sango/shared';
+import type {
+  AuthUser,
+  AvailabilitySlot,
+  SlotBookingInfo as SharedSlotBookingInfo,
+} from '@sango/shared';
 import { addDaysToDateStr } from '@sango/shared';
 import type { CourtWeekAvailabilityDto, VenueDayAvailabilityDto } from '@sango/shared';
 import { AppException } from '../../common/exceptions/app.exception';
@@ -13,7 +17,9 @@ import { calculatePrice } from '../pricing/pricing.calculator';
 import type { PricingInput } from '../pricing/pricing.calculator';
 
 /** Map LocalSlotBookingInfo → SharedSlotBookingInfo (fields đều required sau khi sửa slot-status.ts) */
-function toSharedBookingInfo(local: LocalSlotBookingInfo | undefined): SharedSlotBookingInfo | undefined {
+function toSharedBookingInfo(
+  local: LocalSlotBookingInfo | undefined,
+): SharedSlotBookingInfo | undefined {
   if (!local) return undefined;
   return {
     id: local.id,
@@ -83,7 +89,11 @@ export class AvailabilityService {
     const isOwner = viewer?.role === 'OWNER' && court.venue.ownerId === viewer.id;
 
     if (!isOwner && (court.venue.status !== 'ACTIVE' || !court.isActive)) {
-      throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND', 'Sân con không tồn tại hoặc đã đóng');
+      throw new AppException(
+        HttpStatus.NOT_FOUND,
+        'NOT_FOUND',
+        'Sân con không tồn tại hoặc đã đóng',
+      );
     }
 
     const includeBookingInfo = isOwner;
@@ -193,7 +203,11 @@ export class AvailabilityService {
     const isOwner = viewer?.role === 'OWNER' && venue.ownerId === viewer.id;
 
     if (!isOwner && venue.status !== 'ACTIVE') {
-      throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND', 'Cụm sân không tồn tại hoặc đã đóng');
+      throw new AppException(
+        HttpStatus.NOT_FOUND,
+        'NOT_FOUND',
+        'Cụm sân không tồn tại hoặc đã đóng',
+      );
     }
 
     const includeBookingInfo = isOwner;
