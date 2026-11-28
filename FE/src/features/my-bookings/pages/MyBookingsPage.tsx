@@ -1,6 +1,6 @@
 import { Button, Card, Pagination, Segmented, Select, Skeleton, Space } from 'antd';
 import { Link, useSearchParams } from 'react-router';
-import { BOOKING_STATUSES, type BookingStatus, type MyBookingsQuery } from '@sango/shared';
+import { BOOKING_STATUSES, BOOKING_STATUS_LABELS, isBookingStatus, type BookingStatus, type MyBookingsQuery } from '@sango/shared';
 import { getErrorMessage } from '@/common/api/errors';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -20,7 +20,8 @@ export default function MyBookingsPage() {
   useDocumentTitle('Lịch sử đặt sân');
   const [params, setParams] = useSearchParams();
   const tab = parseTab(params.get('tab'));
-  const status = params.get('status') as BookingStatus | null;
+  const rawStatus = params.get('status');
+  const status = isBookingStatus(rawStatus) ? rawStatus : null;
   const page = Number(params.get('page') ?? '1');
   const query: MyBookingsQuery = {
     page: Number.isInteger(page) && page > 0 ? page : 1,
@@ -51,14 +52,14 @@ export default function MyBookingsPage() {
               { label: 'Đã qua', value: 'past' },
               { label: 'Đã hủy – từ chối', value: 'cancelled' },
             ]}
-            onChange={(value) => updateParams({ tab: String(value), page: '1' })}
+            onChange={(value) => updateParams({ tab: String(value), status: undefined, page: '1' })}
           />
           <Select<BookingStatus>
             allowClear
             placeholder="Lọc theo trạng thái"
             value={status ?? undefined}
             style={{ maxWidth: 240, width: '100%' }}
-            options={BOOKING_STATUSES.map((value) => ({ value, label: value }))}
+            options={BOOKING_STATUSES.map((value) => ({ value, label: BOOKING_STATUS_LABELS[value] }))}
             onChange={(value) => updateParams({ status: value, page: '1' })}
           />
         </Space>

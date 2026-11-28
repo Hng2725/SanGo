@@ -1,4 +1,5 @@
-import { Alert, Button, Card, Descriptions, Input, Modal, Skeleton, Space, Timeline } from 'antd';
+import { Alert, App, Button, Card, Descriptions, Input, Modal, Skeleton, Space, Timeline } from 'antd';
+import { BOOKING_STATUS_LABELS } from '@sango/shared';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { getErrorMessage } from '@/common/api/errors';
@@ -7,12 +8,13 @@ import { formatCurrency, formatDateTime } from '@/common/utils/format';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { BookingStatusBadge } from '../components/BookingStatusBadge';
 import { useCancelBookingMutation, useGetBookingQuery } from '../api/myBookingsApi';
-import { ReviewForm } from '@/features/reviews';
+import { RatingStars, ReviewForm } from '@/features/reviews';
 import { ComplaintForm } from '@/features/complaints';
 
 export default function BookingDetailPage() {
   const { id = '' } = useParams();
   const navigate = useNavigate();
+  const { message } = App.useApp();
   const [reason, setReason] = useState('');
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [cancelOpen, setCancelOpen] = useState(false);
@@ -32,6 +34,7 @@ export default function BookingDetailPage() {
       setCancelError(null);
       await cancel({ id, input: { reason: reason.trim() || undefined } }).unwrap();
       setCancelOpen(false);
+      message.success('Đã hủy đơn');
       navigate(`/me/bookings/${id}`);
     } catch (error) {
       // The mutation error is rendered inside the dialog.
@@ -45,18 +48,23 @@ export default function BookingDetailPage() {
       <Space direction="vertical" size="middle" style={{ width: '100%' }}>
         <Card title="Thông tin sân">
           <Descriptions column={{ xs: 1, sm: 2 }}>
-            <Descriptions.Item label="Cụm sân">{detail.venue.name}</Descriptions.Item>
+            <Descriptions.Item label="Cụm sân"><Link to={`/venues/${detail.venue.slug}`}>{detail.venue.name}</Link></Descriptions.Item>
             <Descriptions.Item label="Sân">{detail.court.name}</Descriptions.Item>
             <Descriptions.Item label="Thời gian">{formatDateTime(detail.startAt)} – {formatDateTime(detail.endAt)}</Descriptions.Item>
             <Descriptions.Item label="Tổng tiền">{formatCurrency(detail.totalPrice)}</Descriptions.Item>
+            <Descriptions.Item label="Số điện thoại liên hệ">{detail.contactPhone}</Descriptions.Item>
+            {detail.note && <Descriptions.Item label="Ghi chú">{detail.note}</Descriptions.Item>}
+            {detail.cancelReason && <Descriptions.Item label="Lý do hủy">{detail.cancelReason}</Descriptions.Item>}
+            {detail.rejectReason && <Descriptions.Item label="Lý do từ chối">{detail.rejectReason}</Descriptions.Item>}
           </Descriptions>
         </Card>
         <Card title="Chi tiết giá">
-          {detail.priceBreakdown.map((item) => <div key={`${item.label ?? item.startAt}-${item.price}`}>{item.label ?? `${item.startAt} – ${item.endAt}`}: {formatCurrency(item.price)}</div>)}
+          {detail.priceBreakdown.map((item) => <div key={item.startAt}>{formatDateTime(item.startAt)} – {formatDateTime(item.endAt)}{item.label ? ` · ${item.label}` : ''}: {formatCurrency(item.price)}</div>)}
         </Card>
         <Card title="Trạng thái">
-          <Timeline items={detail.timeline.map((item) => ({ children: `${item.status} · ${formatDateTime(item.at)}` }))} />
+          <Timeline items={detail.timeline.map((item) => ({ children: `${BOOKING_STATUS_LABELS[item.status]} · ${formatDateTime(item.at)}` }))} />
         </Card>
+        {detail.review && <Card title="Đánh giá của bạn"><RatingStars value={detail.review.rating} readOnly /><p>{detail.review.comment}</p>{detail.review.ownerReply && <Alert type="info" message="Phản hồi chủ sân" description={detail.review.ownerReply} />}</Card>}
         <Space wrap>
           {canCancel && <Button danger onClick={() => setCancelOpen(true)}>Hủy đơn</Button>}
           {detail.allowedActions.includes('REVIEW') && <Button onClick={() => setReviewOpen(true)}>Đánh giá</Button>}
@@ -70,8 +78,8 @@ export default function BookingDetailPage() {
         {(cancelError || cancelState.isError) && <Alert type="error" message={cancelError ?? getErrorMessage(cancelState.error)} />}
         <Input.TextArea maxLength={300} showCount value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Lý do hủy (không bắt buộc)" />
       </Modal>
-      <Modal title="Đánh giá sân" open={reviewOpen} footer={null} onCancel={() => setReviewOpen(false)} destroyOnClose><ReviewForm bookingId={detail.id} onSuccess={() => setReviewOpen(false)} /></Modal>
-      <Modal title="Gửi khiếu nại" open={complaintOpen} footer={null} onCancel={() => setComplaintOpen(false)} destroyOnClose><ComplaintForm venueId={detail.venue.id} bookingId={detail.id} onSuccess={() => setComplaintOpen(false)} /></Modal>
+      <Modal title="Đánh giá sân" open={reviewOpen} footer={null} onCancel={() => setReviewOpen(false)} destroyOnHidden><ReviewForm bookingId={detail.id} onSuccess={() => setReviewOpen(false)} /></Modal>
+      <Modal title="Gửi khiếu nại" open={complaintOpen} footer={null} onCancel={() => setComplaintOpen(false)} destroyOnHidden><ComplaintForm venueId={detail.venue.id} bookingId={detail.id} onSuccess={() => setComplaintOpen(false)} /></Modal>
     </>
   );
 }

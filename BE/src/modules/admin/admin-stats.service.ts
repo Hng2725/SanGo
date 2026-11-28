@@ -1,6 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import {
   BOOKING_STATUSES,
+  MAX_CLOSE_MINUTE,
   toVnParts,
   vnDateMinuteToUtc,
   addDaysToDateStr,
@@ -12,6 +13,7 @@ import {
 import { AppException } from '../../common/exceptions/app.exception';
 import { PrismaService } from '../../prisma/prisma.service';
 import { groupBookingsByVnDate } from './admin-overview.util';
+import { generateDaySlots } from '../availability/slot-generator';
 @Injectable()
 export class AdminStatsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -40,6 +42,7 @@ export class AdminStatsService {
       startingSoon,
       todayRevenue,
       yesterdayRevenue,
+      activeCourts,
     ] = await this.prisma.$transaction([
       this.prisma.booking.findMany({
         where: { createdAt: { gte: start7, lt: endToday } },
@@ -98,6 +101,19 @@ export class AdminStatsService {
         },
         _sum: { totalPrice: true },
       }),
+      this.prisma.court.findMany({
+        where: { isActive: true, venue: { status: 'ACTIVE' } },
+        select: {
+          venue: { select: { openingHours: true } },
+          slotLocks: {
+            where: {
+              startAt: { gte: startToday, lt: vnDateMinuteToUtc(today, MAX_CLOSE_MINUTE) },
+              booking: { status: { in: ['PENDING', 'CONFIRMED', 'COMPLETED'] } },
+            },
+            select: { startAt: true },
+          },
+        },
+      }),
     ]);
     const last7Days = groupBookingsByVnDate(
       recent.map((item) => item.createdAt),
@@ -140,12 +156,20 @@ export class AdminStatsService {
         return [status, typeof count === 'object' ? (count?._all ?? 0) : 0];
       }),
     ) as Record<BookingStatus, number>;
+    let totalSlots = 0;
+    let bookedSlots = 0;
+    for (const court of activeCourts) {
+      const slots = generateDaySlots(court.venue.openingHours, today);
+      const occupied = new Set(court.slotLocks.map((lock) => lock.startAt.getTime()));
+      totalSlots += slots.length;
+      bookedSlots += slots.filter((slot) => occupied.has(slot.startAt.getTime())).length;
+    }
     return {
       today: {
         date: today,
         newBookings: todayBookings,
         newBookingsDelta: todayBookings - yesterdayBookings,
-        occupancyRate: null,
+        occupancyRate: totalSlots ? bookedSlots / totalSlots : 0,
         revenue: todayAmount,
         revenueDeltaPct: yesterdayAmount
           ? Math.round(((todayAmount - yesterdayAmount) / yesterdayAmount) * 100)

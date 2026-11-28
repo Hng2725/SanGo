@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { AppstoreOutlined, MessageOutlined, TeamOutlined } from '@ant-design/icons';
 import { DashboardShell, type ShellMenuItem } from '@/components/layout/DashboardShell';
 import { HeaderActions } from '@/components/layout/HeaderActions';
@@ -6,7 +7,7 @@ import { useLanguage } from '@/common/contexts/LanguageContext';
 import { useCountsQuery } from '@/features/admin-users/api/adminUsersApi';
 import { useOverviewQuery } from '@/features/admin-dashboard/api/adminDashboardApi';
 
-function AdminLayoutBase() {
+function AdminLayoutBase({ children }: { children?: ReactNode }) {
   const { t } = useLanguage();
   const { data: counts } = useCountsQuery();
   const { data: overview } = useOverviewQuery();
@@ -33,7 +34,9 @@ function AdminLayoutBase() {
       rootLabel="Quản trị"
       items={items}
       actions={<HeaderActions dashboard />}
-    />
+    >
+      {children}
+    </DashboardShell>
   );
 }
 export default withAuthGuard(AdminLayoutBase, { roles: ['ADMIN'] });

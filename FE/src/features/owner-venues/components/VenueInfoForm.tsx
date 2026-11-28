@@ -1,23 +1,9 @@
 import React from 'react';
-import {
-  Button,
-  Card,
-  Col,
-  Form,
-  Image,
-  Input,
-  InputNumber,
-  Row,
-  Space,
-  Typography,
-} from 'antd';
+import { Button, Card, Col, Form, Image, Input, InputNumber, Row, Space, Typography } from 'antd';
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  createVenueSchema,
-  type CreateVenueInput,
-} from '@sango/shared';
+import { createVenueSchema, type CreateVenueInput } from '@sango/shared';
 import type { z } from 'zod';
 import { RHFInput, RHFTextArea } from '@/components/forms/RHFFields';
 
@@ -57,7 +43,7 @@ export const VenueInfoForm: React.FC<VenueInfoFormProps> = ({
       address: initialValues.address ?? '',
       district: initialValues.district ?? '',
       city: initialValues.city ?? '',
-      phone: initialValues.phone ?? '',
+      phone: initialValues.phone || null,
       imageUrls: initialValues.imageUrls ?? [],
       cancelBeforeHours: initialValues.cancelBeforeHours ?? 2,
       latitude: initialValues.latitude ?? null,
@@ -83,11 +69,26 @@ export const VenueInfoForm: React.FC<VenueInfoFormProps> = ({
             />
           </Col>
           <Col xs={24} md={8}>
-            <RHFInput
+            <Controller
               control={control}
               name="phone"
-              label="Số điện thoại liên hệ"
-              placeholder="0901234567"
+              render={({ field, fieldState }) => (
+                <Form.Item
+                  label="Số điện thoại liên hệ"
+                  htmlFor="phone"
+                  validateStatus={fieldState.error ? 'error' : ''}
+                  help={fieldState.error?.message}
+                >
+                  <Input
+                    {...field}
+                    id="phone"
+                    value={field.value ?? ''}
+                    onChange={(event) => field.onChange(event.target.value || null)}
+                    size="large"
+                    placeholder="0901234567"
+                  />
+                </Form.Item>
+              )}
             />
           </Col>
         </Row>
@@ -102,12 +103,7 @@ export const VenueInfoForm: React.FC<VenueInfoFormProps> = ({
             />
           </Col>
           <Col xs={12} md={6}>
-            <RHFInput
-              control={control}
-              name="district"
-              label="Quận / Huyện"
-              placeholder="Quận 1"
-            />
+            <RHFInput control={control} name="district" label="Quận / Huyện" placeholder="Quận 1" />
           </Col>
           <Col xs={12} md={6}>
             <RHFInput
@@ -138,15 +134,8 @@ export const VenueInfoForm: React.FC<VenueInfoFormProps> = ({
             name="cancelBeforeHours"
             render={({ field }) => (
               <Space.Compact style={{ width: 200 }}>
-                <InputNumber
-                  {...field}
-                  min={0}
-                  max={72}
-                  style={{ width: '100%' }}
-                />
-                <Button disabled>
-                  giờ
-                </Button>
+                <InputNumber {...field} min={0} max={72} style={{ width: '100%' }} />
+                <Button disabled>giờ</Button>
               </Space.Compact>
             )}
           />
@@ -204,12 +193,7 @@ export const VenueInfoForm: React.FC<VenueInfoFormProps> = ({
                 />
               </Col>
               <Col>
-                <Button
-                  type="text"
-                  danger
-                  icon={<DeleteOutlined />}
-                  onClick={() => remove(idx)}
-                />
+                <Button type="text" danger icon={<DeleteOutlined />} onClick={() => remove(idx)} />
               </Col>
             </Row>
           ))}

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   toVnParts,
   type AvailabilitySlot,
@@ -83,16 +83,13 @@ const AvailabilityGridRoot: React.FC<AvailabilityGridProps> = ({
     return { rows: sortedRows, slotMap: map };
   }, [data]);
 
-  const [activeMobileDate, setActiveMobileDate] = useState<string>(() => {
+  const [chosenMobileDate, setActiveMobileDate] = useState<string>(() => {
     return days.find((d) => d.isToday)?.date ?? days[0]?.date ?? todayStr;
   });
 
-  useEffect(() => {
-    if (days.length > 0 && !days.some((d) => d.date === activeMobileDate)) {
-      const todayCol = days.find((d) => d.isToday);
-      setActiveMobileDate(todayCol ? todayCol.date : days[0].date);
-    }
-  }, [days, activeMobileDate]);
+  const activeMobileDate = days.some((day) => day.date === chosenMobileDate)
+    ? chosenMobileDate
+    : days.find((day) => day.isToday)?.date ?? days[0]?.date ?? todayStr;
 
   const contextValue = useMemo(
     () => ({

@@ -44,6 +44,19 @@ describe('PricingService', () => {
     });
   });
 
+  it('does not expose a quote for a hidden venue', async () => {
+    prisma.court.findUnique.mockResolvedValue({
+      id: 'court1',
+      isActive: true,
+      venue: { status: 'HIDDEN' },
+      basePricePerHour: 100_000,
+      priceRules: [],
+    });
+    await expect(
+      service.quote('court1', new Date('2026-12-01T01:00:00Z'), new Date('2026-12-01T02:00:00Z')),
+    ).rejects.toMatchObject({ status: HttpStatus.NOT_FOUND });
+  });
+
   describe('copyToCourts', () => {
     it('ném lỗi 403 khi một số sân đích thuộc chủ khác', async () => {
       courtsService.getCourtForOwner.mockResolvedValue({

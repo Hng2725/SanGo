@@ -9,7 +9,7 @@ export const reviewsApi = baseApi.injectEndpoints({
     }),
     createReview: build.mutation<ReviewDto, CreateReviewInput>({
       query: (body) => ({ url: '/reviews', method: 'POST', body }),
-      invalidatesTags: ['Review', 'Booking', 'Venue'],
+      invalidatesTags: ['Review', 'Booking', 'Venue', 'OwnerVenue', 'Stats', 'AdminStats'],
     }),
     getOwnerReviews: build.query<Paginated<ReviewDto>, OwnerReviewsQuery>({
       query: (query) => `/owner/reviews?${new URLSearchParams(Object.entries(query).filter(([, value]) => value !== undefined).map(([key, value]) => [key, String(value)]))}`,
@@ -17,7 +17,7 @@ export const reviewsApi = baseApi.injectEndpoints({
     }),
     replyReview: build.mutation<ReviewDto, { id: string; input: ReplyReviewInput }>({
       query: ({ id, input }) => ({ url: `/owner/reviews/${id}/reply`, method: 'PATCH', body: input }),
-      invalidatesTags: ['Review'],
+      invalidatesTags: ['Review', 'Booking'],
     }),
   }),
 });

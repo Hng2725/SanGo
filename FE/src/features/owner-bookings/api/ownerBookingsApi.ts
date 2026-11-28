@@ -1,6 +1,7 @@
 import type {
   BookingDetailDto,
   BookingListItemDto,
+  ConfirmRecurringResultDto,
   OwnerBookingsQuery,
   Paginated,
   RejectBookingInput,
@@ -15,14 +16,14 @@ function toQuery(query: OwnerBookingsQuery): string {
   return params.toString();
 }
 
-const bookingInvalidations = ['Booking', 'Availability', 'Stats'] as const;
+const bookingInvalidations = ['Booking', 'Availability', 'Recurring', 'Stats', 'AdminStats'] as const;
 
 export const ownerBookingsApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
     getOwnerBookings: build.query<Paginated<BookingListItemDto>, OwnerBookingsQuery>({
       query: (query) => `/owner/bookings?${toQuery({ ...query, pageSize: 100 })}`,
       serializeQueryArgs: ({ endpointName, queryArgs }) => {
-        const { page: _page, ...withoutPage } = queryArgs;
+        const withoutPage = Object.fromEntries(Object.entries(queryArgs).filter(([key]) => key !== 'page'));
         return `${endpointName}(${JSON.stringify(withoutPage)})`;
       },
       merge: (currentCache, nextPage, { arg }) => {
@@ -56,7 +57,7 @@ export const ownerBookingsApi = baseApi.injectEndpoints({
       query: (id) => ({ url: `/owner/bookings/${id}/complete`, method: 'PATCH' }),
       invalidatesTags: bookingInvalidations,
     }),
-    confirmSeries: build.mutation<unknown, string>({
+    confirmSeries: build.mutation<ConfirmRecurringResultDto, string>({
       query: (id) => ({ url: `/owner/recurring/${id}/confirm`, method: 'PATCH' }),
       invalidatesTags: bookingInvalidations,
     }),

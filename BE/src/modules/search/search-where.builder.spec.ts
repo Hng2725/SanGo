@@ -58,30 +58,34 @@ describe('buildSearchWhere', () => {
     // openingHours phải có dayOfWeek=5 (thứ 6, 2026-11-27), openMinute<=480, closeMinute>=600
     expect(result.openingHours).toEqual({
       some: {
-        dayOfWeek: 5,
         isClosed: false,
-        openMinute: { lte: 480 },
-        closeMinute: { gte: 600 },
+        OR: [
+          { dayOfWeek: 5, openMinute: { lte: 480 }, closeMinute: { gte: 600 } },
+          { dayOfWeek: 4, openMinute: { lte: 1920 }, closeMinute: { gte: 2040 } },
+        ],
       },
     });
 
     // courts phải có slotLocks: none và maintenanceBlocks: none
-    const courtsCondition = (result.courts as any)?.some;
-    expect(courtsCondition.isActive).toBe(true);
-    expect(courtsCondition.slotLocks).toBeDefined();
-    expect(courtsCondition.maintenanceBlocks).toBeDefined();
+    const courtsCondition = result.courts?.some;
+    expect(courtsCondition).toMatchObject({ isActive: true });
 
     // slotLocks.none phải lọc: startAt trong [fromUtc, toUtc) và (bookingId not null OR expiresAt > now)
-    const slotLock = courtsCondition.slotLocks.none;
+    const slotLock = courtsCondition?.slotLocks?.none;
     // 08:00 VN = 01:00 UTC ngày 2026-11-27
-    expect(slotLock.startAt.gte).toEqual(new Date('2026-11-27T01:00:00.000Z'));
-    expect(slotLock.startAt.lt).toEqual(new Date('2026-11-27T03:00:00.000Z'));
-    expect(slotLock.OR).toEqual([{ bookingId: { not: null } }, { expiresAt: { gt: NOW } }]);
+    expect(slotLock).toMatchObject({
+      startAt: {
+        gte: new Date('2026-11-27T01:00:00.000Z'),
+        lt: new Date('2026-11-27T03:00:00.000Z'),
+      },
+      OR: [{ bookingId: { not: null } }, { expiresAt: { gt: NOW } }],
+    });
 
     // maintenanceBlocks.none phải lọc chồng lấp [fromUtc, toUtc)
-    const maint = courtsCondition.maintenanceBlocks.none;
-    expect(maint.startAt.lt).toEqual(new Date('2026-11-27T03:00:00.000Z'));
-    expect(maint.endAt.gt).toEqual(new Date('2026-11-27T01:00:00.000Z'));
+    expect(courtsCondition?.maintenanceBlocks?.none).toMatchObject({
+      startAt: { lt: new Date('2026-11-27T03:00:00.000Z') },
+      endAt: { gt: new Date('2026-11-27T01:00:00.000Z') },
+    });
   });
 
   it('TC4: sort=newest → không ảnh hưởng where (kiểm tra where thuần)', () => {
@@ -100,9 +104,20 @@ describe('buildSearchWhere', () => {
     };
     const result = buildSearchWhere(query, NOW);
 
-    const courtsCondition = (result.courts as any)?.some;
-    expect(courtsCondition.sport).toBe('FOOTBALL');
-    expect(courtsCondition.slotLocks).toBeDefined();
-    expect(courtsCondition.maintenanceBlocks).toBeDefined();
+    const courtsCondition = result.courts?.some;
+    expect(courtsCondition?.sport).toBe('FOOTBALL');
+    expect(courtsCondition?.slotLocks).toBeDefined();
+    expect(courtsCondition?.maintenanceBlocks).toBeDefined();
+  });
+
+  it('finds the previous operating day when searching after midnight on Monday', () => {
+    const result = buildSearchWhere(
+      { ...BASE_QUERY, date: '2026-11-30', from: '00:00', to: '02:00' },
+      NOW,
+    );
+    expect(result.openingHours?.some?.OR).toEqual([
+      { dayOfWeek: 1, openMinute: { lte: 0 }, closeMinute: { gte: 120 } },
+      { dayOfWeek: 0, openMinute: { lte: 1440 }, closeMinute: { gte: 1560 } },
+    ]);
   });
 });

@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { Public } from '../../common/decorators/auth.decorators';
 import { OptionalUser } from '../../common/decorators/auth.decorators';
 import { ZodQuery, ZodParam } from '../../common/decorators/zod.decorators';

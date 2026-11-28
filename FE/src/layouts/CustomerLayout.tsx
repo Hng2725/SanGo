@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import {
   CalendarOutlined,
   MessageOutlined,
@@ -12,7 +13,7 @@ import { useLanguage } from '@/common/contexts/LanguageContext';
 import { useAppSelector } from '@/app/hooks';
 import { selectCurrentUser } from '@/features/auth/model/authSlice';
 
-function CustomerLayoutBase() {
+function CustomerLayoutBase({ children }: { children?: ReactNode }) {
   const { t } = useLanguage();
   const user = useAppSelector(selectCurrentUser);
   const location = useLocation();
@@ -54,7 +55,7 @@ function CustomerLayoutBase() {
         />
       )}
       <div className="account-content">
-        <Outlet />
+        {children ?? <Outlet />}
       </div>
     </div>
   );

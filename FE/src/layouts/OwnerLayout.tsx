@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import {
   CalendarOutlined,
   EnvironmentOutlined,
@@ -11,7 +12,7 @@ import { withAuthGuard } from '@/common/hoc/withAuthGuard';
 import { useLanguage } from '@/common/contexts/LanguageContext';
 import { useGetOwnerBookingsQuery } from '@/features/owner-bookings/api/ownerBookingsApi';
 
-function OwnerLayoutBase() {
+function OwnerLayoutBase({ children }: { children?: ReactNode }) {
   const { t } = useLanguage();
   const pending = useGetOwnerBookingsQuery({ page: 1, pageSize: 1, status: 'PENDING' });
   const items: ShellMenuItem[] = [
@@ -27,7 +28,9 @@ function OwnerLayoutBase() {
       rootLabel="Chủ sân"
       items={items}
       actions={<HeaderActions dashboard />}
-    />
+    >
+      {children}
+    </DashboardShell>
   );
 }
 export default withAuthGuard(OwnerLayoutBase, { roles: ['OWNER'] });

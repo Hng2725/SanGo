@@ -2,12 +2,9 @@ import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
 import { App, Button, Card, Tabs } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
-import type {
-  CreateVenueInput,
-  OpeningHoursInput,
-  UpdateVenueInput,
-} from '@sango/shared';
+import type { CreateVenueInput, OpeningHoursInput, UpdateVenueInput } from '@sango/shared';
 import { useDocumentTitle } from '@/common/hooks/useDocumentTitle';
+import { getErrorMessage } from '@/common/api/errors';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { FullPageSpinner } from '@/components/feedback/FullPageSpinner';
 import { ErrorState } from '@/components/feedback/ErrorState';
@@ -21,6 +18,7 @@ import {
 import { VenueInfoForm } from '../components/VenueInfoForm';
 import { CourtsManager } from '../components/CourtsManager';
 import { OpeningHoursForm } from '../components/OpeningHoursForm';
+import styles from './VenueEditorPage.module.css';
 
 export const VenueEditorPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -52,7 +50,11 @@ export const VenueEditorPage: React.FC = () => {
       <ErrorState
         title="Không tìm thấy cụm sân"
         description="Cụm sân này không tồn tại hoặc bạn không có quyền truy cập."
-        actions={<Button type="primary" onClick={() => refetch()}>Thử lại</Button>}
+        actions={
+          <Button type="primary" onClick={() => refetch()}>
+            Thử lại
+          </Button>
+        }
       />
     );
   }
@@ -61,16 +63,21 @@ export const VenueEditorPage: React.FC = () => {
     try {
       if (isNew) {
         const created = await createVenue(values).unwrap();
-        message.success('Đã tạo cụm sân thành công! Bạn có thể tiếp tục thêm sân con và chỉnh giờ mở cửa.');
+        message.success(
+          'Đã tạo cụm sân thành công! Bạn có thể tiếp tục thêm sân con và chỉnh giờ mở cửa.',
+        );
         navigate(`/owner/venues/${created.id}`, { replace: true });
       } else {
         if (!venue) return;
-        await updateVenue({ id: venue.id, body: values as UpdateVenueInput }).unwrap();
+        const body: UpdateVenueInput = { ...values };
+        // Coordinates are saved independently from the map tab.
+        delete body.latitude;
+        delete body.longitude;
+        await updateVenue({ id: venue.id, body }).unwrap();
         message.success('Đã lưu thông tin cụm sân thành công');
-        refetch();
       }
-    } catch {
-      message.error('Thao tác không thành công. Vui lòng kiểm tra lại thông tin.');
+    } catch (error: unknown) {
+      message.error(getErrorMessage(error));
     }
   };
 
@@ -79,9 +86,8 @@ export const VenueEditorPage: React.FC = () => {
     try {
       await replaceHours({ venueId: venue.id, body: values }).unwrap();
       message.success('Đã cập nhật giờ mở cửa của cụm sân');
-      refetch();
-    } catch {
-      message.error('Không thể cập nhật giờ mở cửa. Vui lòng thử lại.');
+    } catch (error: unknown) {
+      message.error(getErrorMessage(error));
     }
   };
 
@@ -100,9 +106,8 @@ export const VenueEditorPage: React.FC = () => {
         },
       }).unwrap();
       message.success('Đã cập nhật tọa độ vị trí sân thành công');
-      refetch();
-    } catch {
-      message.error('Không thể cập nhật tọa độ bản đồ.');
+    } catch (error: unknown) {
+      message.error(getErrorMessage(error));
     }
   };
 
@@ -138,9 +143,7 @@ export const VenueEditorPage: React.FC = () => {
       key: 'courts',
       label: `Sân con (${venue?.courts.length ?? 0})`,
       disabled: isNew,
-      children: venue ? (
-        <CourtsManager venueId={venue.id} courts={venue.courts} />
-      ) : null,
+      children: venue ? <CourtsManager venueId={venue.id} courts={venue.courts} /> : null,
     },
     {
       key: 'hours',
@@ -163,7 +166,7 @@ export const VenueEditorPage: React.FC = () => {
           <LocationPicker
             value={
               locationCoords ??
-              (venue?.latitude && venue?.longitude
+              (venue?.latitude != null && venue?.longitude != null
                 ? { lat: venue.latitude, lng: venue.longitude }
                 : null)
             }
@@ -185,9 +188,9 @@ export const VenueEditorPage: React.FC = () => {
   ];
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', paddingBottom: 48 }}>
+    <div className={styles.page}>
       <PageHeader
-        title={isNew ? 'Thêm cụm sân mới' : venue?.name ?? 'Quản lý cụm sân'}
+        title={isNew ? 'Thêm cụm sân mới' : (venue?.name ?? 'Quản lý cụm sân')}
         description={
           isNew
             ? 'Nhập các thông tin cơ bản để khởi tạo cụm sân'

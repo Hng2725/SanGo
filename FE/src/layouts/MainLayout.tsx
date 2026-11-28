@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { App, Avatar, Button, Drawer, Layout, Segmented, Switch } from 'antd';
 import { MenuOutlined } from '@ant-design/icons';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router';
@@ -10,7 +10,7 @@ import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { baseApi } from '@/common/api/baseApi';
 import { loggedOut, selectCurrentUser } from '@/features/auth/model/authSlice';
 
-export default function MainLayout() {
+export default function MainLayout({ children }: { children?: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { t, language, setLanguage } = useLanguage();
   const { mode, setMode } = useTheme();
@@ -64,7 +64,7 @@ export default function MainLayout() {
         </div>
       </Layout.Header>
       <Layout.Content className="main-content">
-        <Outlet />
+        {children ?? <Outlet />}
       </Layout.Content>
       <Layout.Footer className="main-footer">
         <span>© 2026 SanGo</span>

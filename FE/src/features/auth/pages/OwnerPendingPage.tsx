@@ -1,5 +1,6 @@
 import { Alert, App, Button, Grid, Steps } from 'antd';
 import { ClockCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { useDocumentTitle } from '@/common/hooks/useDocumentTitle';
@@ -14,17 +15,21 @@ export default function OwnerPendingPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { message } = App.useApp();
-  const { refetch, isFetching } = useMeQuery();
+  const { refetch, isFetching } = useMeQuery(undefined, { refetchOnMountOrArgChange: true });
   const rejected = user?.ownerStatus === 'REJECTED';
+  useEffect(() => {
+    if (user?.ownerStatus === 'APPROVED') {
+      navigate('/owner', { replace: true, viewTransition: true });
+    }
+  }, [user?.ownerStatus, navigate]);
 
   const check = async () => {
     try {
-      const current = (await refetch()).data;
+      const current = await refetch().unwrap();
       if (current) {
         dispatch(userUpdated(current));
         if (current.ownerStatus === 'APPROVED') {
           message.success('Tài khoản đã được duyệt');
-          navigate('/owner', { viewTransition: true });
         } else {
           message.info('Hồ sơ vẫn đang chờ duyệt');
         }
@@ -61,7 +66,7 @@ export default function OwnerPendingPage() {
         current={1}
         status={rejected ? 'error' : 'process'}
         size="small"
-        direction={screens.sm ? 'horizontal' : 'vertical'}
+        orientation={screens.sm ? 'horizontal' : 'vertical'}
         items={[
           { title: 'Tạo tài khoản' },
           { title: 'Quản trị viên duyệt' },
@@ -69,11 +74,9 @@ export default function OwnerPendingPage() {
         ]}
       />
       <div className="pending-actions">
-        {!rejected && (
-          <Button type="primary" loading={isFetching} onClick={check}>
-            Kiểm tra lại
-          </Button>
-        )}
+        <Button type="primary" loading={isFetching} onClick={check}>
+          Kiểm tra lại
+        </Button>
         <Button className="logout-action" onClick={logout}>
           Đăng xuất
         </Button>

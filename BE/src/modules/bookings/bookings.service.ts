@@ -40,6 +40,15 @@ export class BookingsService {
     endAt: Date,
     now: Date,
   ): Promise<void> {
+    // Serialize reservations with maintenance on the same court. Write callers use a transaction.
+    await txOrPrisma.$queryRaw`SELECT id FROM "Court" WHERE id = ${court.id} FOR UPDATE`;
+    const activeCourt = await txOrPrisma.court.findUnique({
+      where: { id: court.id },
+      include: { venue: { select: { status: true } } },
+    });
+    if (!activeCourt?.isActive || activeCourt.venue.status !== 'ACTIVE') {
+      throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND', 'Sân không còn hoạt động');
+    }
     // 1. Kiểm tra startAt > now
     if (startAt.getTime() <= now.getTime()) {
       throw new AppException(
@@ -55,14 +64,12 @@ export class BookingsService {
     });
 
     const slotStarts = enumerateSlotStarts(startAt, endAt);
-    for (const slotStart of slotStarts) {
-      if (!this.isWithinOpeningHours(slotStart, openingHours)) {
-        throw new AppException(
-          HttpStatus.CONFLICT,
-          'SLOT_UNAVAILABLE',
-          'Khung giờ nằm ngoài giờ mở cửa',
-        );
-      }
+    if (!this.isWithinOpeningHours(slotStarts, openingHours)) {
+      throw new AppException(
+        HttpStatus.CONFLICT,
+        'SLOT_UNAVAILABLE',
+        'Các khung giờ phải thuộc cùng một ngày hoạt động trong giờ mở cửa',
+      );
     }
 
     // 3. Kiểm tra không chồng bảo trì
@@ -84,19 +91,31 @@ export class BookingsService {
   /**
    * Kiểm tra 1 slot có nằm trong giờ mở cửa (kể cả ca qua đêm ngày trước).
    */
-  private isWithinOpeningHours(slotStart: Date, openingHours: readonly OpeningHourLike[]): boolean {
-    const { dateStr } = toVnParts(slotStart);
+  private isWithinOpeningHours(
+    slotStarts: readonly Date[],
+    openingHours: readonly OpeningHourLike[],
+  ): boolean {
+    if (!slotStarts.length) return false;
+    const { dateStr } = toVnParts(slotStarts[0]);
 
     // Kiểm tra ngày hoạt động chính
     const slotsToday = generateDaySlots(openingHours, dateStr);
-    if (slotsToday.some((s) => s.startAt.getTime() === slotStart.getTime())) {
+    if (
+      slotStarts.every((start) =>
+        slotsToday.some((slot) => slot.startAt.getTime() === start.getTime()),
+      )
+    ) {
       return true;
     }
 
     // Kiểm tra ca qua đêm của ngày trước
     const prevDateStr = addDaysToDateStr(dateStr, -1);
     const slotsPrev = generateDaySlots(openingHours, prevDateStr);
-    if (slotsPrev.some((s) => s.startAt.getTime() === slotStart.getTime())) {
+    if (
+      slotStarts.every((start) =>
+        slotsPrev.some((slot) => slot.startAt.getTime() === start.getTime()),
+      )
+    ) {
       return true;
     }
 
@@ -113,9 +132,13 @@ export class BookingsService {
     input: CreateBookingInput,
     opts?: { recurringSeriesId?: string; now?: Date },
   ): Promise<{ id: string }> {
-    const now = opts?.now ?? new Date();
     const startAt = new Date(input.startAt);
     const endAt = new Date(input.endAt);
+
+    // Keep the same customer -> court -> hold/slot lock order as hold replacement.
+    await tx.$queryRaw`SELECT id FROM "User" WHERE id = ${customerId} FOR UPDATE`;
+    await tx.$queryRaw`SELECT id FROM "Court" WHERE id = ${input.courtId} FOR UPDATE`;
+    const now = opts?.now ?? new Date();
 
     // 1. Kiểm tra court và venue active
     const court = await tx.court.findUnique({
@@ -195,14 +218,26 @@ export class BookingsService {
     // 6. Tạo/chuyển SlotLock
     if (input.holdId) {
       // Chuyển lock từ hold sang booking
-      await tx.slotLock.updateMany({
-        where: { holdId: input.holdId },
+      const converted = await tx.slotLock.updateMany({
+        where: {
+          holdId: input.holdId,
+          courtId: input.courtId,
+          startAt: { in: slotStarts },
+          expiresAt: { gt: now },
+        },
         data: {
           bookingId: booking.id,
           holdId: null,
           expiresAt: null,
         },
       });
+      if (converted.count !== slotStarts.length) {
+        throw new AppException(
+          HttpStatus.CONFLICT,
+          'HOLD_EXPIRED',
+          'Giữ chỗ không còn đủ khung giờ. Vui lòng chọn lại.',
+        );
+      }
       // Xóa hold
       await tx.bookingHold.delete({ where: { id: input.holdId } });
     } else {

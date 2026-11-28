@@ -232,12 +232,19 @@ export const createRecurringSchema = recurringBaseSchema.extend({
 
 ## 7. Checklist Definition of Done
 
+- [x] 28/11/2026: hoàn thiện sự kiện/cache chuỗi, phản hồi đánh giá, drawer xử lý đơn, định dạng chi tiết đơn và mobile lịch cố định; recurring khóa trước FK INSERT. Tích hợp local và kết quả: `docs/bao-cao/KIEM_THU_TICH_HOP_2026-11-28.md`.
+
 - [x] D0 → D8 xong, mỗi chức năng đủ DB + BE + API + shared + FE + test.
 - [x] Mọi chuyển trạng thái đi qua `transition()` (không update `status` trực tiếp ở chỗ khác).
 - [x] Hủy/từ chối luôn giải phóng khung (kiểm tra trên lưới của Hiếu).
 - [x] Seed ≥ 300 đơn, virtualization chạy mượt.
 - [x] Báo cáo phần mình hoàn tất tại `docs/bao-cao/duong.md`.
 - [ ] Video demo thực tế (đã có kịch bản trong báo cáo, cần quay thủ công).
+
+## Cập nhật ngày 28/11/2026
+
+- [x] 28/11/2026: đồng bộ giao diện tổng quan chủ sân với tổng quan admin; dùng chung biểu đồ và định dạng doanh thu, sửa tải lại dữ liệu và ngày Việt Nam; kiểm tra desktop, mobile 375px, dark mode và test hồi quy.
+- [x] Chuẩn hóa Đơn đặt sân bằng bảng Ant Design/danh sách mobile, trạng thái chấm màu dùng chung, bộ lọc theo tên sân và phản hồi từ chối; bổ sung test thao tác/bộ lọc và báo cáo rà soát giao diện các trang còn lại.
 
 ## 8. Gợi ý nhánh & commit
 

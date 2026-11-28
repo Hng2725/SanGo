@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
+import userEvent from '@testing-library/user-event';
 import type { VenueDetailDto } from '@sango/shared';
 import { server } from '@/test/msw/server';
 import { renderWithProviders } from '@/test/test-utils';
@@ -95,5 +96,9 @@ describe('VenueDetailPage', () => {
         screen.getByText(/Cụm sân này không tồn tại hoặc đã tạm dừng hoạt động/i),
       ).toBeInTheDocument();
     });
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Điều hướng chính' }));
+    const navigation = await screen.findByRole('navigation', { name: 'Thanh điều hướng' });
+    expect(within(navigation).getByRole('link', { name: 'Tìm sân' })).toHaveAttribute('href', '/venues');
+    expect(within(navigation).getByRole('link', { name: 'Đăng nhập' })).toHaveAttribute('href', '/login');
   });
 });

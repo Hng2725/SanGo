@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, Link } from 'react-router';
+import { useParams, useSearchParams, Link } from 'react-router';
 import { App, Button, Space } from 'antd';
 import { ArrowLeftOutlined, CopyOutlined } from '@ant-design/icons';
 import type { PricingConfigInput } from '@sango/shared';
@@ -7,6 +7,7 @@ import { useDocumentTitle } from '@/common/hooks/useDocumentTitle';
 import { FullPageSpinner } from '@/components/feedback/FullPageSpinner';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { getErrorMessage } from '@/common/api/errors';
 import {
   useCopyPricingMutation,
   useGetPricingQuery,
@@ -14,9 +15,11 @@ import {
 } from '../api/pricingApi';
 import { PricingForm } from '../components/PricingForm';
 import { CopyPricingModal } from '../components/CopyPricingModal';
+import styles from './CourtPricingPage.module.css';
 
 export const CourtPricingPage: React.FC = () => {
   const { courtId = '' } = useParams<{ courtId: string }>();
+  const [searchParams] = useSearchParams();
   const { message } = App.useApp();
   const [copyModalOpen, setCopyModalOpen] = useState(false);
 
@@ -48,8 +51,9 @@ export const CourtPricingPage: React.FC = () => {
     try {
       await updatePricing({ courtId, body: values }).unwrap();
       message.success('Đã cập nhật bảng giá thành công');
-    } catch {
-      message.error('Không thể cập nhật bảng giá. Vui lòng kiểm tra lại.');
+    } catch (error: unknown) {
+      message.error(getErrorMessage(error));
+      throw error;
     }
   };
 
@@ -57,18 +61,19 @@ export const CourtPricingPage: React.FC = () => {
     try {
       await copyPricing({ courtId, targetCourtIds }).unwrap();
       message.success('Đã sao chép bảng giá thành công');
-    } catch {
-      message.error('Sao chép bảng giá thất bại.');
+    } catch (error: unknown) {
+      message.error(getErrorMessage(error));
+      throw error;
     }
   };
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', paddingBottom: 48 }}>
+    <div className={styles.page}>
       <PageHeader
         title="Cấu hình bảng giá"
         description="Thiết lập giá thuê sân theo giờ cho ngày thường và cuối tuần"
         extra={
-          <Space>
+          <Space wrap className={styles.actions}>
             <Link to="/owner/venues">
               <Button icon={<ArrowLeftOutlined />}>Quay lại danh sách</Button>
             </Link>
@@ -101,7 +106,7 @@ export const CourtPricingPage: React.FC = () => {
         open={copyModalOpen}
         onClose={() => setCopyModalOpen(false)}
         sourceCourtId={courtId}
-        availableCourts={[]} // Sẽ chọn thêm sân nếu có
+        initialVenueId={searchParams.get('venueId') ?? undefined}
         onCopy={handleCopy}
         loading={isCopying}
       />

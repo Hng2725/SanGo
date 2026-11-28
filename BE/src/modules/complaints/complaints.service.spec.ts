@@ -28,7 +28,7 @@ describe('ComplaintsService', () => {
       }),
     ).rejects.toMatchObject({
       status: 403,
-      response: expect.objectContaining({ code: 'FORBIDDEN' }),
+      response: { code: 'FORBIDDEN' },
     });
   });
 
@@ -44,7 +44,7 @@ describe('ComplaintsService', () => {
       }),
     ).rejects.toMatchObject({
       status: 409,
-      response: expect.objectContaining({ code: 'INVALID_STATUS_TRANSITION' }),
+      response: { code: 'INVALID_STATUS_TRANSITION' },
     });
   });
 });

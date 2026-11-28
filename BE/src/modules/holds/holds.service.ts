@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import {
   enumerateSlotStarts,
@@ -26,12 +26,23 @@ export class HoldsService {
   async createHold(userId: string, input: CreateHoldInput): Promise<HoldDto> {
     const startAt = new Date(input.startAt);
     const endAt = new Date(input.endAt);
-    const now = new Date();
-    const expiresAt = new Date(now.getTime() + HOLD_TTL_MINUTES * 60_000);
 
     try {
       const hold = await this.prisma.$transaction(
         async (tx) => {
+          // Serialize a customer's hold replacement with checkout. Lock all affected courts
+          // in deterministic order before cascading deletes touch their SlotLock rows.
+          await tx.$queryRaw`SELECT id FROM "User" WHERE id = ${userId} FOR UPDATE`;
+          const previousHolds = await tx.bookingHold.findMany({
+            where: { userId },
+            select: { courtId: true },
+          });
+          const courtIds = [
+            ...new Set([input.courtId, ...previousHolds.map((hold) => hold.courtId)]),
+          ].sort();
+          await tx.$queryRaw`SELECT id FROM "Court" WHERE id IN (${Prisma.join(courtIds)}) ORDER BY id FOR UPDATE`;
+          const now = new Date();
+          const expiresAt = new Date(now.getTime() + HOLD_TTL_MINUTES * 60_000);
           // 1. Xóa hold cũ của user (cascade xóa SlotLock)
           await tx.bookingHold.deleteMany({ where: { userId } });
 
@@ -107,30 +118,38 @@ export class HoldsService {
   }
 
   async deleteHold(holdId: string, userId: string): Promise<void> {
-    const hold = await this.prisma.bookingHold.findUnique({
-      where: { id: holdId },
+    await this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM "User" WHERE id = ${userId} FOR UPDATE`;
+      const hold = await tx.bookingHold.findUnique({ where: { id: holdId } });
+      if (!hold) throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND', 'Giữ chỗ không tồn tại');
+      if (hold.userId !== userId) {
+        throw new AppException(
+          HttpStatus.FORBIDDEN,
+          'FORBIDDEN',
+          'Bạn không có quyền xóa giữ chỗ này',
+        );
+      }
+      await tx.$queryRaw`SELECT id FROM "Court" WHERE id = ${hold.courtId} FOR UPDATE`;
+      await tx.bookingHold.delete({ where: { id: holdId } });
     });
-
-    if (!hold) {
-      throw new AppException(HttpStatus.NOT_FOUND, 'NOT_FOUND', 'Giữ chỗ không tồn tại');
-    }
-
-    if (hold.userId !== userId) {
-      throw new AppException(
-        HttpStatus.FORBIDDEN,
-        'FORBIDDEN',
-        'Bạn không có quyền xóa giữ chỗ này',
-      );
-    }
-
-    await this.prisma.bookingHold.delete({ where: { id: holdId } });
   }
 
   @Cron(CronExpression.EVERY_MINUTE)
   async purgeExpiredHolds(): Promise<void> {
     const now = new Date();
-    const result = await this.prisma.bookingHold.deleteMany({
+    const expired = await this.prisma.bookingHold.findMany({
       where: { expiresAt: { lt: now } },
+      select: { id: true, userId: true, courtId: true },
+    });
+    if (!expired.length) return;
+    const result = await this.prisma.$transaction(async (tx) => {
+      const userIds = [...new Set(expired.map((hold) => hold.userId))].sort();
+      const courtIds = [...new Set(expired.map((hold) => hold.courtId))].sort();
+      await tx.$queryRaw`SELECT id FROM "User" WHERE id IN (${Prisma.join(userIds)}) ORDER BY id FOR UPDATE`;
+      await tx.$queryRaw`SELECT id FROM "Court" WHERE id IN (${Prisma.join(courtIds)}) ORDER BY id FOR UPDATE`;
+      return tx.bookingHold.deleteMany({
+        where: { id: { in: expired.map((hold) => hold.id) }, expiresAt: { lt: now } },
+      });
     });
     if (result.count > 0) {
       this.logger.log(`Đã xóa ${result.count} giữ chỗ hết hạn`);

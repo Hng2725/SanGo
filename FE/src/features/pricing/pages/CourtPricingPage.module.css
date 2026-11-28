@@ -1,0 +1,16 @@
+.page {
+  width: 100%;
+  min-width: 0;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-bottom: 48px;
+}
+
+.page :global(.page-header) > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.actions {
+  max-width: 100%;
+}

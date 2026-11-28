@@ -171,7 +171,7 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({ venueId, courts })
             Sửa
           </Button>
 
-          <Link to={`/owner/courts/${record.id}/pricing`}>
+          <Link to={`/owner/courts/${record.id}/pricing?venueId=${encodeURIComponent(venueId)}`}>
             <Button size="small" icon={<DollarOutlined />}>
               Bảng giá
             </Button>
@@ -213,6 +213,7 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({ venueId, courts })
         columns={columns}
         rowKey="id"
         pagination={false}
+        scroll={{ x: 760 }}
         locale={{ emptyText: 'Chưa có sân con nào trong cụm này' }}
       />
 

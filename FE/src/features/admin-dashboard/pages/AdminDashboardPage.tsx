@@ -23,7 +23,7 @@ import {
 } from '@sango/shared';
 import { getErrorMessage } from '@/common/api/errors';
 import { useDocumentTitle } from '@/common/hooks/useDocumentTitle';
-import { formatCurrency } from '@/common/utils/format';
+import { formatCompactCurrency, formatCurrency } from '@/common/utils/format';
 import { ConfirmAction } from '@/components/feedback/ConfirmAction';
 import { CourtLines } from '@/components/branding/CourtLines';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -42,13 +42,6 @@ const statusTone: Record<BookingStatus, string> = {
   CANCELLED: 'muted',
   REJECTED: 'error',
 };
-function shortMoney(value: number) {
-  if (value >= 1_000_000_000)
-    return `${(value / 1_000_000_000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} tỷ ₫`;
-  if (value >= 1_000_000)
-    return `${(value / 1_000_000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} tr ₫`;
-  return formatCurrency(value);
-}
 
 export default function AdminDashboardPage() {
   useDocumentTitle('Tổng quan quản trị');
@@ -187,7 +180,7 @@ export default function AdminDashboardPage() {
           </div>
           <div>
             <small>Doanh thu hôm nay</small>
-            <strong>{shortMoney(data.today.revenue)}</strong>
+            <strong>{formatCompactCurrency(data.today.revenue)}</strong>
             <span className={data.today.revenueDeltaPct < 0 ? 'scoreboard-down' : 'scoreboard-up'}>
               {data.today.revenueDeltaPct < 0 ? <CaretDownOutlined /> : <CaretUpOutlined />}
               {Math.abs(data.today.revenueDeltaPct)}% so với hôm qua

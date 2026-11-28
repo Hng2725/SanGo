@@ -49,10 +49,10 @@ export class PricingService {
     const db = tx ?? this.prisma;
     const court = await db.court.findUnique({
       where: { id: courtId },
-      include: { priceRules: true },
+      include: { priceRules: true, venue: { select: { status: true } } },
     });
 
-    if (!court || !court.isActive) {
+    if (!court || !court.isActive || court.venue.status !== 'ACTIVE') {
       throw new AppException(
         HttpStatus.NOT_FOUND,
         'NOT_FOUND',

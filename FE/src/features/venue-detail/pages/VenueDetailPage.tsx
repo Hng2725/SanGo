@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 import {
   Alert,
   Button,
@@ -32,6 +32,7 @@ import { formatCurrency } from '@/common/utils/format';
 import { useDocumentTitle } from '@/common/hooks/useDocumentTitle';
 import { FullPageSpinner } from '@/components/feedback/FullPageSpinner';
 import { EmptyState } from '@/components/feedback/EmptyState';
+import { ErrorNavigation } from '@/components/layout/ErrorNavigation';
 import { VenueMap } from '@/features/map';
 import { CourtWeekSchedule } from '@/features/availability/components/CourtWeekSchedule';
 import { VenueReviews } from '@/features/reviews';
@@ -63,16 +64,18 @@ export const VenueDetailPage: React.FC = () => {
 
   if (isError || !venue) {
     return (
-      <div style={{ maxWidth: 800, margin: '60px auto', padding: '0 16px' }}>
-        <EmptyState
-          description="Cụm sân này không tồn tại hoặc đã tạm dừng hoạt động."
-          action={
-            <Button type="primary" onClick={() => (window.location.href = '/')}>
-              Về trang chủ tìm kiếm
-            </Button>
-          }
-        />
-      </div>
+      <ErrorNavigation>
+        <div style={{ maxWidth: 800, margin: '60px auto', padding: '0 16px' }}>
+          <EmptyState
+            description="Cụm sân này không tồn tại hoặc đã tạm dừng hoạt động."
+            action={
+              <Link to="/venues" viewTransition>
+                <Button type="primary">Về trang chủ tìm kiếm</Button>
+              </Link>
+            }
+          />
+        </div>
+      </ErrorNavigation>
     );
   }
 

@@ -1,0 +1,33 @@
+.page {
+  width: 100%;
+  min-width: 0;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-bottom: 48px;
+}
+
+.page :global(.ant-tabs),
+.page :global(.ant-tabs-content-holder),
+.page :global(.ant-tabs-tabpane),
+.page :global(.ant-card),
+.page :global(.ant-table-wrapper) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (max-width: 575px) {
+  .page :global(.ant-card-head-wrapper) {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-block: 12px;
+  }
+
+  .page :global(.ant-card-head-title) {
+    flex: 1 1 160px;
+    white-space: normal;
+  }
+
+  .page :global(.ant-card-extra) {
+    margin-inline-start: 0;
+  }
+}

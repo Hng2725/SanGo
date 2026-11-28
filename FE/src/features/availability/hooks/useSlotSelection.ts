@@ -1,10 +1,12 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 export interface SlotSelectionOptions<TSlot> {
+  /** A different court/week starts an independent selection. */
+  scope?: string;
   getKey: (slot: TSlot) => string;
   isSelectable: (slot: TSlot) => boolean;
   isAdjacent: (a: TSlot, b: TSlot) => boolean; // a.endAt === b.startAt và cùng ngày hoạt động
-  max: number;                                  // MAX_SLOTS_PER_BOOKING
+  max: number; // MAX_SLOTS_PER_BOOKING
 }
 
 export function useSlotSelection<TSlot>(options: SlotSelectionOptions<TSlot>): {
@@ -16,15 +18,23 @@ export function useSlotSelection<TSlot>(options: SlotSelectionOptions<TSlot>): {
 } {
   const [selected, setSelected] = useState<readonly TSlot[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [previousScope, setPreviousScope] = useState(options.scope);
+  if (previousScope !== options.scope) {
+    setPreviousScope(options.scope);
+    setSelected([]);
+    setError(null);
+  }
 
   const optionsRef = useRef(options);
-  optionsRef.current = options;
+  useLayoutEffect(() => {
+    optionsRef.current = options;
+  }, [options]);
+  const { getKey } = options;
 
   // Map khóa của các ô đã chọn để tra cứu O(1)
   const selectedKeys = useMemo(() => {
-    const { getKey } = optionsRef.current;
     return new Set(selected.map((s) => getKey(s)));
-  }, [selected]);
+  }, [selected, getKey]);
 
   // Bọc useCallback để các ô SlotCell (React.memo) không re-render thừa khi truyền callback
   const isSelected = useCallback(

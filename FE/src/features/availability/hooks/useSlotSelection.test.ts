@@ -10,11 +10,7 @@ interface MockSlot {
   available: boolean;
 }
 
-const makeSlot = (
-  startHour: number,
-  available = true,
-  date = '2026-11-23',
-): MockSlot => ({
+const makeSlot = (startHour: number, available = true, date = '2026-11-23'): MockSlot => ({
   id: `${date}_${startHour}`,
   date,
   startHour,
@@ -26,10 +22,23 @@ describe('useSlotSelection', () => {
   const defaultOptions = {
     getKey: (s: MockSlot) => s.id,
     isSelectable: (s: MockSlot) => s.available,
-    isAdjacent: (a: MockSlot, b: MockSlot) =>
-      a.date === b.date && a.endHour === b.startHour,
+    isAdjacent: (a: MockSlot, b: MockSlot) => a.date === b.date && a.endHour === b.startHour,
     max: 3,
   };
+
+  it('clears selection when the court or operating week changes', () => {
+    const { result, rerender } = renderHook(
+      ({ scope }) => useSlotSelection({ ...defaultOptions, scope }),
+      { initialProps: { scope: 'court-1|week-1' } },
+    );
+    act(() => result.current.toggle(makeSlot(8)));
+    expect(result.current.selected).toHaveLength(1);
+    rerender({ scope: 'court-2|week-1' });
+    expect(result.current.selected).toEqual([]);
+    act(() => result.current.toggle(makeSlot(9)));
+    rerender({ scope: 'court-2|week-2' });
+    expect(result.current.selected).toEqual([]);
+  });
 
   it('nối dài dải khi chọn các ô liền kề đầu hoặc cuối', () => {
     const { result } = renderHook(() => useSlotSelection(defaultOptions));

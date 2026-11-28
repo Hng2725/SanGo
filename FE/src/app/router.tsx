@@ -1,10 +1,11 @@
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, type RouteObject } from 'react-router';
 import MainLayout from '@/layouts/MainLayout';
 import AuthLayout from '@/layouts/AuthLayout';
 import CustomerLayout from '@/layouts/CustomerLayout';
 import OwnerLayout from '@/layouts/OwnerLayout';
 import AdminLayout from '@/layouts/AdminLayout';
 import ErrorPage from '@/pages/ErrorPage';
+import { ErrorNavigation } from '@/components/layout/ErrorNavigation';
 import { authRoutes, ownerPendingRoute } from '@/features/auth/routes';
 import { profileRoutes } from '@/features/profile/routes';
 import { adminDashboardRoutes } from '@/features/admin-dashboard/routes';
@@ -22,10 +23,36 @@ import { complaintRoutes, adminComplaintRoutes } from '@/features/complaints/rou
 import { recurringRoutes } from '@/features/recurring/routes';
 import { ownerReviewsRoutes } from '@/features/reviews/routes';
 
+function notFoundRoute(publicNavigation = false): RouteObject {
+  return {
+    path: '*',
+    lazy: async () => {
+      const { default: NotFoundPage } = await import('@/pages/NotFoundPage');
+      return {
+        Component: publicNavigation
+          ? () => (
+              <ErrorNavigation>
+                <NotFoundPage />
+              </ErrorNavigation>
+            )
+          : NotFoundPage,
+      };
+    },
+  };
+}
+
+const publicError = (
+  <MainLayout>
+    <ErrorNavigation>
+      <ErrorPage />
+    </ErrorNavigation>
+  </MainLayout>
+);
+
 export const router = createBrowserRouter([
   {
     element: <MainLayout />,
-    errorElement: <ErrorPage />,
+    errorElement: publicError,
     children: [
       {
         index: true,
@@ -34,29 +61,53 @@ export const router = createBrowserRouter([
       {
         path: '403',
         lazy: () =>
-          import('@/pages/ForbiddenPage').then((module) => ({ Component: module.default })),
+          import('@/pages/ForbiddenPage').then(({ default: ForbiddenPage }) => ({
+            Component: () => (
+              <ErrorNavigation>
+                <ForbiddenPage />
+              </ErrorNavigation>
+            ),
+          })),
       },
       ownerPendingRoute,
       ...searchRoutes,
       ...venueDetailRoutes,
       ...bookingRoutes,
-      { path: 'me', element: <CustomerLayout />, children: [...profileRoutes, ...myBookingsRoutes, ...complaintRoutes, ...recurringRoutes] },
       {
-        path: '*',
-        lazy: () =>
-          import('@/pages/NotFoundPage').then((module) => ({ Component: module.default })),
+        path: 'me',
+        element: <CustomerLayout />,
+        errorElement: (
+          <CustomerLayout>
+            <ErrorPage />
+          </CustomerLayout>
+        ),
+        children: [
+          ...profileRoutes,
+          ...myBookingsRoutes,
+          ...complaintRoutes,
+          ...recurringRoutes,
+          notFoundRoute(),
+        ],
       },
+      notFoundRoute(true),
     ],
   },
-  { element: <AuthLayout />, errorElement: <ErrorPage />, children: [...authRoutes] },
+  { element: <AuthLayout />, errorElement: publicError, children: [...authRoutes] },
   {
     path: 'owner',
     element: <OwnerLayout />,
-    errorElement: <ErrorPage />,
+    errorElement: (
+      <OwnerLayout>
+        <ErrorPage />
+      </OwnerLayout>
+    ),
     children: [
       {
         index: true,
-        lazy: () => import('@/features/stats/pages/OwnerDashboardPage').then((module) => ({ Component: module.default })),
+        lazy: () =>
+          import('@/features/stats/pages/OwnerDashboardPage').then((module) => ({
+            Component: module.default,
+          })),
       },
       ...ownerVenueRoutes,
       ...ownerScheduleRoutes,
@@ -64,12 +115,22 @@ export const router = createBrowserRouter([
       ...maintenanceRoutes,
       ...ownerBookingsRoutes,
       ...ownerReviewsRoutes,
+      notFoundRoute(),
     ],
   },
   {
     path: 'admin',
     element: <AdminLayout />,
-    errorElement: <ErrorPage />,
-    children: [...adminDashboardRoutes, ...adminUserRoutes, ...adminComplaintRoutes],
+    errorElement: (
+      <AdminLayout>
+        <ErrorPage />
+      </AdminLayout>
+    ),
+    children: [
+      ...adminDashboardRoutes,
+      ...adminUserRoutes,
+      ...adminComplaintRoutes,
+      notFoundRoute(),
+    ],
   },
 ]);

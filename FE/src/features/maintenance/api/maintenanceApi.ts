@@ -22,14 +22,14 @@ export const maintenanceApi = baseApi.injectEndpoints({
         method: 'POST',
         body,
       }),
-      invalidatesTags: [{ type: 'Maintenance', id: 'LIST' }, 'Availability'],
+      invalidatesTags: [{ type: 'Maintenance', id: 'LIST' }, 'Availability', 'Venue'],
     }),
     deleteCourtMaintenance: build.mutation<void, string>({
       query: (id) => ({
         url: `/owner/maintenance/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: [{ type: 'Maintenance', id: 'LIST' }, 'Availability'],
+      invalidatesTags: [{ type: 'Maintenance', id: 'LIST' }, 'Availability', 'Venue'],
     }),
   }),
 });
