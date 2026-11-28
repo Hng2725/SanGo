@@ -7,6 +7,7 @@ import { BookingsService } from '../bookings/bookings.service';
 import { SlotLockService } from '../bookings/slot-lock.service';
 import { PricingService } from '../pricing/pricing.service';
 import { RecurringService } from './recurring.service';
+import { AppEvents } from '../../common/events/app-events';
 
 describe('RecurringService', () => {
   let prisma: DeepMockProxy<PrismaService>;
@@ -26,6 +27,7 @@ describe('RecurringService', () => {
   };
 
   beforeEach(() => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-11-28T03:00:00.000Z'));
     prisma = mockDeep<PrismaService>();
     prisma.$transaction.mockImplementation((fn) => fn(prisma));
     bookingsService = {
@@ -54,6 +56,8 @@ describe('RecurringService', () => {
       eventEmitter,
     );
   });
+
+  afterEach(() => jest.useRealTimers());
 
   it('trả 409 SLOT_ALREADY_BOOKED khi có tuần trùng và skipConflicts = false', async () => {
     prisma.court.findUnique.mockResolvedValue({
@@ -85,14 +89,14 @@ describe('RecurringService', () => {
       }),
     ).rejects.toMatchObject({
       status: 409,
-      response: expect.objectContaining({
+      response: {
         code: 'SLOT_ALREADY_BOOKED',
         details: { conflictedDates: ['2026-12-08'] },
-      }),
+      },
     });
   });
 
-  it('tạo đúng số đơn khi skipConflicts = true và trả về skippedDates', async () => {
+  it('khóa User rồi Court trước khi tạo chuỗi và tạo đúng số đơn khi bỏ qua tuần trùng', async () => {
     prisma.court.findUnique.mockResolvedValue({
       id: 'court-1',
       venueId: 'venue-1',
@@ -144,8 +148,18 @@ describe('RecurringService', () => {
       skipConflicts: true,
     });
 
-    expect(bookingsService.createBookingInTx).toHaveBeenCalledTimes(2);
+    expect(bookingsService.createBookingInTx.mock.calls).toHaveLength(2);
     expect(res.skippedDates).toEqual(['2026-12-08']);
+    expect(prisma.$queryRaw.mock.calls).toEqual([
+      [['SELECT id FROM "User" WHERE id = ', ' FOR UPDATE'], 'cust-1'],
+      [['SELECT id FROM "Court" WHERE id = ', ' FOR UPDATE'], 'court-1'],
+    ]);
+    const [userLockOrder, courtLockOrder] = prisma.$queryRaw.mock.invocationCallOrder;
+    const [seriesCreateOrder] = prisma.recurringSeries.create.mock.invocationCallOrder;
+    const [bookingCreateOrder] = bookingsService.createBookingInTx.mock.invocationCallOrder;
+    expect(userLockOrder).toBeLessThan(courtLockOrder);
+    expect(courtLockOrder).toBeLessThan(seriesCreateOrder);
+    expect(seriesCreateOrder).toBeLessThan(bookingCreateOrder);
   });
 
   it('hủy chuỗi chỉ hủy các đơn còn trong hạn và bỏ qua đơn quá hạn hủy', async () => {
@@ -195,6 +209,71 @@ describe('RecurringService', () => {
 
     expect(res.cancelledCount).toBe(1);
     expect(res.skippedCount).toBe(1);
-    expect(bookingLifecycleService.transitionInTx).toHaveBeenCalledTimes(1);
+    expect(bookingLifecycleService.transitionInTx.mock.calls).toHaveLength(1);
+    expect(eventEmitter.emit.mock.calls).toEqual([
+      [AppEvents.BookingCancelled, { bookingId: 'bk-ok' }],
+    ]);
+  });
+
+  it('gửi sự kiện xác nhận từng đơn sau khi transaction xác nhận chuỗi commit', async () => {
+    prisma.recurringSeries.findUnique.mockResolvedValue({
+      id: 'series-1',
+      court: { venue: { ownerId: 'owner-1' } },
+      bookings: [
+        { id: 'bk-pending', status: 'PENDING', startAt: new Date('2026-12-01T11:00:00Z') },
+        { id: 'bk-confirmed', status: 'CONFIRMED', startAt: new Date('2026-12-08T11:00:00Z') },
+      ],
+    } as never);
+    prisma.recurringSeries.findUniqueOrThrow.mockResolvedValue({
+      court: {
+        id: 'court-1',
+        name: 'Sân 1',
+        sport: 'FOOTBALL',
+        venue: { id: 'venue-1', name: 'Sân A', slug: 'san-a', address: 'A' },
+      },
+      bookings: [{ status: 'CONFIRMED' }, { status: 'CONFIRMED' }],
+      createdAt: new Date('2026-11-27T10:00:00Z'),
+    } as never);
+    let committed = false;
+    prisma.$transaction.mockImplementation(async (fn) => {
+      const result = await fn(prisma);
+      expect(eventEmitter.emit.mock.calls).toHaveLength(0);
+      committed = true;
+      return result;
+    });
+    eventEmitter.emit.mockImplementation(() => {
+      expect(committed).toBe(true);
+      return true;
+    });
+
+    const result = await service.confirmSeries('series-1', {
+      ...customer,
+      id: 'owner-1',
+      role: 'OWNER',
+      ownerStatus: 'APPROVED',
+    });
+    expect(result.confirmedCount).toBe(1);
+    expect(eventEmitter.emit.mock.calls).toEqual([
+      [AppEvents.BookingConfirmed, { bookingId: 'bk-pending' }],
+    ]);
+  });
+
+  it('không gửi email khi transaction xác nhận chuỗi rollback', async () => {
+    prisma.recurringSeries.findUnique.mockResolvedValue({
+      court: { venue: { ownerId: 'owner-1' } },
+      bookings: [
+        { id: 'bk-pending', status: 'PENDING', startAt: new Date('2026-12-01T11:00:00Z') },
+      ],
+    } as never);
+    bookingLifecycleService.transitionInTx.mockRejectedValue(new Error('transaction failed'));
+    await expect(
+      service.confirmSeries('series-1', {
+        ...customer,
+        id: 'owner-1',
+        role: 'OWNER',
+        ownerStatus: 'APPROVED',
+      }),
+    ).rejects.toThrow('transaction failed');
+    expect(eventEmitter.emit.mock.calls).toHaveLength(0);
   });
 });

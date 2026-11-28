@@ -1,130 +1,124 @@
-/**
- * race-booking.ts – Script thử đặt sân đồng thời.
- * Chạy: npx tsx scripts/race-booking.ts --n 10
- *
- * Yêu cầu: server chạy ở http://localhost:3000, có seed customers.
+/** Local integration check: npx tsx scripts/race-booking.ts --n 20.
+ * Finds an available future slot, expects one winner and cancels only its test bookings.
  */
+import {
+  addDaysToDateStr,
+  toVnParts,
+  type BookingDto,
+  type Paginated,
+  type VenueCardDto,
+  type VenueDayAvailabilityDto,
+} from '@sango/shared';
+
+function report(message: string) {
+  process.stdout.write(message + '\n');
+}
+
 const BASE = process.env.API_URL ?? 'http://localhost:3000/api';
-const N = Number(process.argv.find((_, i, a) => a[i - 1] === '--n') ?? 10);
+const countArg = process.argv.indexOf('--n');
+const N = countArg < 0 ? 20 : Number(process.argv[countArg + 1]);
 
-interface LoginResponse {
-  data: { accessToken: string };
-}
-
-async function login(email: string, password: string): Promise<string> {
-  const res = await fetch(`${BASE}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-  });
-  if (!res.ok) throw new Error(`Login failed for ${email}: ${res.status}`);
-  const body = (await res.json()) as LoginResponse;
-  return body.data.accessToken;
-}
-
-async function createBooking(
-  token: string,
-  body: Record<string, string>,
-): Promise<{ status: number; body: unknown }> {
-  const res = await fetch(`${BASE}/bookings`, {
-    method: 'POST',
+async function request<T>(
+  path: string,
+  token?: string,
+  method = 'GET',
+  body?: unknown,
+): Promise<T> {
+  const response = await fetch(`${BASE}${path}`, {
+    method,
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    body: JSON.stringify(body),
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
-  return { status: res.status, body: await res.json() };
+  if (!response.ok) throw new Error(`${method} ${path}: HTTP ${response.status}`);
+  const envelope = (await response.json()) as { data: T };
+  return envelope.data;
 }
 
 async function main() {
-  console.log(`\n🏃 Race booking test: ${N} concurrent requests\n`);
-
-  // 1. Login N customers
-  const tokens: string[] = [];
-  for (let i = 1; i <= N; i++) {
-    const email = `customer${String(i).padStart(3, '0')}@sango.vn`;
-    try {
-      const token = await login(email, 'Customer@123');
-      tokens.push(token);
-    } catch {
-      console.warn(`⚠ Could not login ${email}, using customer@sango.vn`);
-      const token = await login('customer@sango.vn', 'Customer@123');
-      tokens.push(token);
-    }
-  }
-  console.log(`✅ Logged in ${tokens.length} customers`);
-
-  // 2. Find a court and an available slot (tomorrow 11:00 VN)
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const dateStr = tomorrow.toISOString().slice(0, 10);
-  // 11:00 VN = 04:00 UTC
-  const startAt = `${dateStr}T04:00:00.000Z`;
-  const endAt = `${dateStr}T05:00:00.000Z`;
-
-  // Try to find a court via the venues endpoint
-  const venuesRes = await fetch(`${BASE}/venues?pageSize=1`);
-  if (!venuesRes.ok) {
-    console.error('❌ Could not fetch venues');
-    process.exit(1);
-  }
-  const venuesBody = (await venuesRes.json()) as {
-    data: { items: { id: string; slug: string }[] };
-  };
-  const venue = venuesBody.data.items[0];
-  if (!venue) {
-    console.error('❌ No venues found in DB');
-    process.exit(1);
-  }
-
-  // Get venue detail for first court
-  const venueRes = await fetch(`${BASE}/venues/${venue.slug}`);
-  const venueDetail = (await venueRes.json()) as {
-    data: { courts: { id: string; name: string }[] };
-  };
-  const court = venueDetail.data.courts[0];
-  if (!court) {
-    console.error('❌ No courts found');
-    process.exit(1);
-  }
-
-  console.log(`📍 Target: court "${court.name}" (${court.id}), ${startAt} → ${endAt}`);
-
-  // 3. Fire N concurrent booking requests
-  const bookingBody = {
-    courtId: court.id,
-    startAt,
-    endAt,
-    contactPhone: '0901234567',
-  };
-
-  const results = await Promise.all(tokens.map((token) => createBooking(token, bookingBody)));
-
-  // 4. Tally results
-  const counts: Record<number, number> = {};
-  for (const r of results) {
-    counts[r.status] = (counts[r.status] ?? 0) + 1;
-  }
-
-  console.log('\n📊 Results:');
-  for (const [status, count] of Object.entries(counts).sort()) {
-    console.log(`   HTTP ${status}: ${count}`);
-  }
-
-  const created = counts[201] ?? 0;
-  const conflict = counts[409] ?? 0;
-  if (created === 1 && conflict === N - 1) {
-    console.log(`\n✅ PASS: Exactly 1 booking created, ${N - 1} conflicts`);
-  } else {
-    console.log(
-      `\n❌ FAIL: Expected 1×201 and ${N - 1}×409, got ${created}×201 and ${conflict}×409`,
+  if (!Number.isInteger(N) || N < 2 || N > 50)
+    throw new Error('--n must be an integer between 2 and 50');
+  const logins = await Promise.all(
+    ['customer@sango.vn', 'customer2@sango.vn'].map((email) =>
+      request<{ accessToken: string }>('/auth/login', undefined, 'POST', {
+        email,
+        password: 'Customer@123',
+      }),
+    ),
+  );
+  const tokens = Array.from({ length: N }, (_, index) => logins[index % logins.length].accessToken);
+  const date = addDaysToDateStr(toVnParts(new Date()).dateStr, 7);
+  const venues = await request<Paginated<VenueCardDto>>('/venues?pageSize=20');
+  let target: { venueId: string; courtId: string; startAt: string; endAt: string } | undefined;
+  for (const venue of venues.items) {
+    const availability = await request<VenueDayAvailabilityDto>(
+      `/venues/${venue.id}/availability?date=${date}`,
     );
-    process.exit(1);
+    for (const court of availability.courts) {
+      const slot = court.slots.find((item) => item.status === 'AVAILABLE');
+      if (slot) {
+        target = {
+          venueId: venue.id,
+          courtId: court.court.id,
+          startAt: slot.startAt,
+          endAt: slot.endAt,
+        };
+        break;
+      }
+    }
+    if (target) break;
   }
+  if (!target) throw new Error('No available future slot found; no test booking created');
+  report(`Race: ${N} requests, ${date}, court ${target.courtId}, ${target.startAt}`);
+  const body = {
+    courtId: target.courtId,
+    startAt: target.startAt,
+    endAt: target.endAt,
+    contactPhone: '0901234567',
+    note: 'SanGo local concurrency integration check',
+  };
+  const results = await Promise.all(
+    tokens.map(async (token) => {
+      const response = await fetch(`${BASE}/bookings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(body),
+      });
+      const payload = (await response.json()) as { data?: BookingDto; code?: string };
+      return { status: response.status, booking: payload.data, code: payload.code, token };
+    }),
+  );
+  const created = results.filter((result) => result.status === 201 && result.booking);
+  const conflicts = results.filter(
+    (result) => result.status === 409 && result.code === 'SLOT_ALREADY_BOOKED',
+  );
+  report(`HTTP 201: ${created.length}; HTTP 409 SLOT_ALREADY_BOOKED: ${conflicts.length}`);
+  // Release reservations even when the expected concurrency assertion fails.
+  for (const result of created) {
+    if (!result.booking) continue;
+    await request(`/bookings/${result.booking.id}/cancel`, result.token, 'PATCH', {
+      reason: 'Hoàn tất kiểm thử đặt trùng local',
+    });
+    report(`Cancelled test order ${result.booking.code}`);
+  }
+  if (created.length !== 1 || conflicts.length !== N - 1)
+    throw new Error(
+      `Expected 1 created and ${N - 1} conflicts; statuses: ${results.map((result) => result.status).join(', ')}`,
+    );
+  const after = await request<VenueDayAvailabilityDto>(
+    `/venues/${target.venueId}/availability?date=${date}`,
+  );
+  // The cancellation endpoint is authoritative; print the actual final slot state when present.
+  const released = after.courts
+    .find((court) => court.court.id === target.courtId)
+    ?.slots.find((slot) => slot.startAt === target.startAt);
+  if (!released || released.status !== 'AVAILABLE')
+    throw new Error(`Test slot was not released: ${released?.status ?? 'missing'}`);
+  report('PASS: one reservation won; all test orders cancelled and slots released.');
 }
-
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
+main().catch((error: unknown) => {
+  console.error(error instanceof Error ? error.message : error);
+  process.exitCode = 1;
 });

@@ -25,7 +25,7 @@ describe('ReviewsService', () => {
       service.create('user-1', { bookingId: 'bk-1', rating: 5, comment: 'Tốt' }),
     ).rejects.toMatchObject({
       status: 409,
-      response: expect.objectContaining({ code: 'REVIEW_NOT_ALLOWED' }),
+      response: { code: 'REVIEW_NOT_ALLOWED' },
     });
   });
 
@@ -40,7 +40,7 @@ describe('ReviewsService', () => {
 
     await expect(service.create('user-1', { bookingId: 'bk-1', rating: 4 })).rejects.toMatchObject({
       status: 409,
-      response: expect.objectContaining({ code: 'REVIEW_NOT_ALLOWED' }),
+      response: { code: 'REVIEW_NOT_ALLOWED' },
     });
   });
 
@@ -81,9 +81,13 @@ describe('ReviewsService', () => {
     });
 
     expect(dto.rating).toBe(4);
-    expect(prisma.venue.update).toHaveBeenCalledWith({
-      where: { id: 'venue-1' },
-      data: { avgRating: 4.33, reviewCount: 3 },
-    });
+    expect(prisma.venue.update.mock.calls).toEqual([
+      [
+        {
+          where: { id: 'venue-1' },
+          data: { avgRating: 4.33, reviewCount: 3 },
+        },
+      ],
+    ]);
   });
 });

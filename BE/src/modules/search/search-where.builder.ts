@@ -66,10 +66,15 @@ export function buildSearchWhere(query: SearchVenuesQuery, now: Date): Prisma.Ve
     // Venue phải có openingHour khớp dayOfWeek và bao phủ [fromMinute, toMinute]
     where.openingHours = {
       some: {
-        dayOfWeek,
         isClosed: false,
-        openMinute: { lte: fromMinute },
-        closeMinute: { gte: toMinute },
+        OR: [
+          { dayOfWeek, openMinute: { lte: fromMinute }, closeMinute: { gte: toMinute } },
+          {
+            dayOfWeek: (dayOfWeek + 6) % 7,
+            openMinute: { lte: fromMinute + 1440 },
+            closeMinute: { gte: toMinute + 1440 },
+          },
+        ],
       },
     };
   }

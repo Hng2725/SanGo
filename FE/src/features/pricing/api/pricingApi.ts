@@ -24,6 +24,9 @@ export const pricingApi = baseApi.injectEndpoints({
       invalidatesTags: (_res, _err, { courtId }) => [
         { type: 'Pricing', id: courtId },
         'Availability',
+        'Venue',
+        'OwnerVenue',
+        'Court',
       ],
     }),
     copyPricing: build.mutation<
@@ -35,7 +38,7 @@ export const pricingApi = baseApi.injectEndpoints({
         method: 'POST',
         body: { targetCourtIds },
       }),
-      invalidatesTags: ['Pricing', 'Availability'],
+      invalidatesTags: ['Pricing', 'Availability', 'Venue', 'OwnerVenue', 'Court'],
     }),
     quotePrice: build.mutation<PriceQuote, QuotePriceInput>({
       query: (body) => ({

@@ -1,12 +1,12 @@
-import { Tag } from 'antd';
+import { StatusDot } from '@/components/feedback/StatusDot';
 import { BOOKING_STATUS_LABELS, type BookingStatus } from '@sango/shared';
 
-export const BOOKING_STATUS_BADGE: Record<BookingStatus, { label: string; className: string }> = {
-  PENDING: { label: BOOKING_STATUS_LABELS.PENDING, className: 'status-warning' },
-  CONFIRMED: { label: BOOKING_STATUS_LABELS.CONFIRMED, className: 'status-success' },
-  COMPLETED: { label: BOOKING_STATUS_LABELS.COMPLETED, className: 'status-success' },
-  CANCELLED: { label: BOOKING_STATUS_LABELS.CANCELLED, className: 'status-neutral' },
-  REJECTED: { label: BOOKING_STATUS_LABELS.REJECTED, className: 'status-error' },
+const tones: Record<BookingStatus, 'warning' | 'success' | 'muted' | 'error'> = {
+  PENDING: 'warning',
+  CONFIRMED: 'success',
+  COMPLETED: 'success',
+  CANCELLED: 'muted',
+  REJECTED: 'error',
 };
 
 interface BookingStatusBadgeProps {
@@ -14,6 +14,5 @@ interface BookingStatusBadgeProps {
 }
 
 export function BookingStatusBadge({ status }: BookingStatusBadgeProps) {
-  const badge = BOOKING_STATUS_BADGE[status];
-  return <Tag className={badge.className}>{badge.label}</Tag>;
+  return <StatusDot label={BOOKING_STATUS_LABELS[status]} tone={tones[status]} />;
 }

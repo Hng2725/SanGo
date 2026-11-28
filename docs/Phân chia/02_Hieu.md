@@ -223,6 +223,12 @@ export type CreateBookingInput = z.infer<typeof createBookingSchema>;
 
 ## 7. Checklist Definition of Done
 
+- [x] 28/11/2026: hoàn thiện ca qua đêm/tìm sân, ngày hoạt động, lỗi lịch/hold, drawer lịch chủ sân, thứ tự khóa và kiểm tra chuyển đủ hold. Race thật 20 request đạt 1×201/19×409; kiểm tra tích hợp local và kết quả: `docs/bao-cao/KIEM_THU_TICH_HOP_2026-11-28.md`.
+
+- [x] 28/11/2026: chuẩn hóa giao diện checkout bằng PageHeader/Section; bố trí thông tin sân, ngày/giờ/thời lượng, bảng giá desktop và danh sách mobile. Đã kiểm tra Chrome 375px/chế độ tối và đặt/hủy đơn thử; toàn bộ 274 test và build đạt, lint các file checkout đạt (lint tổng còn lỗi BE có sẵn).
+
+- [x] 28/11/2026: sửa cleanup giữ chỗ khi StrictMode chạy lại effect; phân biệt lỗi `HOLD_EXPIRED`/xung đột; hiển thị giờ cho giá mặc định và ca qua nửa đêm. Có test hồi quy và kiểm tra đặt/hủy đơn trên Chrome local.
+
 - [ ] K0 → K7 xong, mỗi chức năng đủ DB + BE + API + shared + FE + test.
 - [ ] Script race chạy đúng 1×201, (N-1)×409.
 - [ ] Lưới hoạt động tốt trên mobile (375px) và desktop.

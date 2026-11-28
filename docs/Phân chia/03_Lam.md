@@ -230,6 +230,10 @@ Quy tắc đúng mục 6.3 tổng quan (dùng `toVnParts`, `isWeekendDay`, `enum
 
 ## 7. Checklist Definition of Done
 
+- [x] 28/11/2026: hoàn thiện copy bảng giá/cache công khai/validation, bảo trì chống tranh chấp với hold, bảo toàn sân có tham chiếu, thông tin/tọa độ; sửa tràn mobile sân con và bảng giá. Kết quả: `docs/bao-cao/KIEM_THU_TICH_HOP_2026-11-28.md`.
+
+- [x] 28/11/2026: trang cụm sân không tồn tại/lỗi tải dữ liệu vẫn có điều hướng bên trái; mobile dùng drawer và nút về tìm sân chuyển trang bằng router. Đã kiểm tra Chrome và test hồi quy; 282 test và build toàn dự án đạt.
+
 - [x] L0 → L6 xong, mỗi chức năng đủ DB + BE + API + shared + FE + test.
 - [x] Seed venues chạy được, có cụm qua nửa đêm.
 - [x] Mọi API owner kiểm tra sở hữu ở service (403) – không chỉ Guard.

@@ -17,9 +17,10 @@ interface DashboardShellProps {
   rootLabel: string;
   items: ShellMenuItem[];
   actions?: ReactNode;
+  children?: ReactNode;
 }
 
-export function DashboardShell({ title, rootLabel, items, actions }: DashboardShellProps) {
+export function DashboardShell({ title, rootLabel, items, actions, children }: DashboardShellProps) {
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(true);
   const screens = Grid.useBreakpoint();
@@ -128,7 +129,7 @@ export function DashboardShell({ title, rootLabel, items, actions }: DashboardSh
         </Layout.Header>
         <Layout.Content className="dashboard-content">
           <div className="dashboard-inner">
-            <Outlet />
+          {children ?? <Outlet />}
           </div>
         </Layout.Content>
       </Layout>

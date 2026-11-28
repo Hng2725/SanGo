@@ -74,6 +74,7 @@ describe('BookingLifecycleService & Cron', () => {
   });
 
   beforeEach(() => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-11-20T08:00:00.000Z'));
     prisma = mockDeep<PrismaService>();
     slotLockService = {
       releaseBooking: jest.fn().mockResolvedValue(undefined),
@@ -88,6 +89,15 @@ describe('BookingLifecycleService & Cron', () => {
     cron = new BookingLifecycleCron(prisma, service);
   });
 
+  afterEach(() => jest.useRealTimers());
+
+  it('đơn chờ xác nhận không hiển thị hạn hủy dành cho đơn đã xác nhận', async () => {
+    prisma.booking.findUnique.mockResolvedValue(makeRecord({ status: 'PENDING' }));
+    const detail = await service.getDetail('bk-1', customerUser);
+    expect(detail.allowedActions).toContain('CANCEL');
+    expect(detail.cancelDeadline).toBeNull();
+  });
+
   it('từ chối chuyển trạng thái không hợp lệ (COMPLETED -> CANCELLED) với 409', async () => {
     prisma.booking.findUnique.mockResolvedValue(makeRecord({ status: 'COMPLETED' }));
 
@@ -95,7 +105,7 @@ describe('BookingLifecycleService & Cron', () => {
       service.transition('bk-1', 'CANCELLED', 'CUSTOMER', customerUser),
     ).rejects.toMatchObject({
       status: 409,
-      response: expect.objectContaining({ code: 'INVALID_STATUS_TRANSITION' }),
+      response: { code: 'INVALID_STATUS_TRANSITION' },
     });
   });
 
@@ -106,7 +116,7 @@ describe('BookingLifecycleService & Cron', () => {
       service.transition('bk-1', 'CONFIRMED', 'OWNER', { ...ownerUser, id: 'other-owner' }),
     ).rejects.toMatchObject({
       status: 403,
-      response: expect.objectContaining({ code: 'FORBIDDEN' }),
+      response: { code: 'FORBIDDEN' },
     });
   });
 
@@ -120,7 +130,7 @@ describe('BookingLifecycleService & Cron', () => {
       }),
     ).rejects.toMatchObject({
       status: 409,
-      response: expect.objectContaining({ code: 'CANCELLATION_NOT_ALLOWED' }),
+      response: { code: 'CANCELLATION_NOT_ALLOWED' },
     });
   });
 
@@ -140,8 +150,8 @@ describe('BookingLifecycleService & Cron', () => {
     });
 
     expect(result.status).toBe('CANCELLED');
-    expect(slotLockService.releaseBooking).toHaveBeenCalledTimes(1);
-    expect(eventEmitter.emit).toHaveBeenCalledWith('booking.cancelled', { bookingId: 'bk-1' });
+    expect(slotLockService.releaseBooking.mock.calls).toHaveLength(1);
+    expect(eventEmitter.emit.mock.calls).toEqual([['booking.cancelled', { bookingId: 'bk-1' }]]);
   });
 
   it('trả 409 INVALID_STATUS_TRANSITION khi khóa lạc quan updateMany trả count = 0', async () => {
@@ -175,7 +185,7 @@ describe('BookingLifecycleService & Cron', () => {
       'COMPLETED',
       'SYSTEM',
       undefined,
-      expect.objectContaining({ now: expect.any(Date) }),
+      expect.objectContaining({ now: new Date('2026-11-20T08:00:00.000Z') }),
     );
     expect(transitionSpy).toHaveBeenNthCalledWith(
       2,

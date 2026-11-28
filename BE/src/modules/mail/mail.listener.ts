@@ -93,14 +93,30 @@ export class MailListener {
   async recurringCreated({ seriesId }: RecurringEventPayload): Promise<void> {
     const series = await this.prisma.recurringSeries.findUnique({
       where: { id: seriesId },
-      include: { customer: true },
+      include: {
+        customer: { select: { email: true, fullName: true } },
+        _count: { select: { bookings: true } },
+        court: {
+          select: {
+            name: true,
+            venue: { select: { name: true, owner: { select: { email: true } } } },
+          },
+        },
+      },
     });
     if (!series) return;
-    await this.safeSend(
-      series.customer.email,
-      'Đã tạo lịch cố định',
-      `Lịch cố định ${series.weeks} tuần đã được tạo.`,
-    );
+    await Promise.all([
+      this.safeSend(
+        series.customer.email,
+        'Đã tạo lịch cố định',
+        `Đã tạo ${series._count.bookings} buổi trong lịch cố định ${series.weeks} tuần tại ${series.court.venue.name}.`,
+      ),
+      this.safeSend(
+        series.court.venue.owner.email,
+        'Có lịch đặt sân cố định mới',
+        `${series.customer.fullName} đã đặt ${series._count.bookings} buổi tại ${series.court.name} trong lịch ${series.weeks} tuần. Các đơn đang chờ xác nhận.`,
+      ),
+    ]);
   }
   @OnEvent(AppEvents.OwnerApproved, { async: true })
   async ownerApproved({ userId }: OwnerEventPayload): Promise<void> {

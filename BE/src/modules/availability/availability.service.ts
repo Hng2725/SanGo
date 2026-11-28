@@ -10,11 +10,21 @@ import { AppException } from '../../common/exceptions/app.exception';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PricingService } from '../pricing/pricing.service';
 import { MaintenanceService } from '../maintenance/maintenance.service';
-import { generateDaySlots } from './slot-generator';
+import { generateDaySlots, type OpeningHourLike } from './slot-generator';
 import { computeSlotStatus } from './slot-status';
 import type { SlotBookingInfo as LocalSlotBookingInfo, SlotStatusContext } from './slot-status';
 import { calculatePrice } from '../pricing/pricing.calculator';
 import type { PricingInput } from '../pricing/pricing.calculator';
+
+/** An operating day's final slot may finish after the calendar boundary. */
+function operatingEnd(
+  hours: readonly OpeningHourLike[],
+  lastDate: string,
+  calendarEnd: Date,
+): Date {
+  const end = generateDaySlots(hours, lastDate).at(-1)?.endAt;
+  return end && end > calendarEnd ? end : calendarEnd;
+}
 
 /** Map LocalSlotBookingInfo → SharedSlotBookingInfo (fields đều required sau khi sửa slot-status.ts) */
 function toSharedBookingInfo(
@@ -99,7 +109,11 @@ export class AvailabilityService {
     const includeBookingInfo = isOwner;
     const weekEndStr = addDaysToDateStr(weekStart, 7);
     const weekStartDate = new Date(`${weekStart}T00:00:00+07:00`);
-    const weekEndDate = new Date(`${weekEndStr}T00:00:00+07:00`);
+    const weekEndDate = operatingEnd(
+      court.venue.openingHours,
+      addDaysToDateStr(weekStart, 6),
+      new Date(`${weekEndStr}T00:00:00+07:00`),
+    );
 
     // 1 query: pricing
     const pricingMap = await this.pricingService.getCourtPricing([courtId]);
@@ -219,7 +233,11 @@ export class AvailabilityService {
 
     const dayStartDate = new Date(`${date}T00:00:00+07:00`);
     const dayEndStr = addDaysToDateStr(date, 1);
-    const dayEndDate = new Date(`${dayEndStr}T00:00:00+07:00`);
+    const dayEndDate = operatingEnd(
+      venue.openingHours,
+      date,
+      new Date(`${dayEndStr}T00:00:00+07:00`),
+    );
 
     // 1 query: pricing tất cả courts
     const pricingMap = await this.pricingService.getCourtPricing(courtIds);

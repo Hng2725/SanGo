@@ -34,7 +34,7 @@ export const ownerVenueApi = baseApi.injectEndpoints({
         method: 'POST',
         body,
       }),
-      invalidatesTags: [{ type: 'OwnerVenue', id: 'LIST' }, 'Location'],
+      invalidatesTags: [{ type: 'OwnerVenue', id: 'LIST' }, 'Location', 'Venue'],
     }),
     updateOwnerVenue: build.mutation<
       OwnerVenueDetailDto,
@@ -48,6 +48,8 @@ export const ownerVenueApi = baseApi.injectEndpoints({
       invalidatesTags: (_res, _err, { id }) => [
         { type: 'OwnerVenue', id },
         'Location',
+        'Venue',
+        'Availability',
       ],
     }),
     hideOwnerVenue: build.mutation<void, string>({
@@ -55,7 +57,7 @@ export const ownerVenueApi = baseApi.injectEndpoints({
         url: `/owner/venues/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['OwnerVenue', 'Location', 'Availability'],
+      invalidatesTags: ['OwnerVenue', 'Location', 'Availability', 'Venue'],
     }),
     replaceOpeningHours: build.mutation<
       OpeningHourDto[],
@@ -69,6 +71,7 @@ export const ownerVenueApi = baseApi.injectEndpoints({
       invalidatesTags: (_res, _err, { venueId }) => [
         { type: 'OwnerVenue', id: venueId },
         'Availability',
+        'Venue',
       ],
     }),
     createCourt: build.mutation<CourtDto, { venueId: string; body: CreateCourtInput }>({
@@ -81,6 +84,7 @@ export const ownerVenueApi = baseApi.injectEndpoints({
         { type: 'OwnerVenue', id: venueId },
         'Court',
         'Availability',
+        'Venue',
       ],
     }),
     updateCourt: build.mutation<
@@ -96,6 +100,8 @@ export const ownerVenueApi = baseApi.injectEndpoints({
         { type: 'OwnerVenue', id: venueId },
         'Court',
         'Availability',
+        'Pricing',
+        'Venue',
       ],
     }),
     deleteCourt: build.mutation<void, { courtId: string; venueId: string }>({
@@ -107,6 +113,8 @@ export const ownerVenueApi = baseApi.injectEndpoints({
         { type: 'OwnerVenue', id: venueId },
         'Court',
         'Availability',
+        'Pricing',
+        'Venue',
       ],
     }),
     getLocations: build.query<LocationDto[], void>({

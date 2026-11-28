@@ -34,11 +34,7 @@ export const myBookingsApi = baseApi.injectEndpoints({
     }),
     cancelBooking: build.mutation<BookingDetailDto, { id: string; input: CancelBookingInput }>({
       query: ({ id, input }) => ({ url: `/bookings/${id}/cancel`, method: 'PATCH', body: input }),
-      invalidatesTags: (_result, _error, { id }) => [
-        { type: 'Booking', id },
-        { type: 'Booking', id: 'LIST' },
-        'Availability',
-      ],
+      invalidatesTags: ['Booking', 'Availability', 'Recurring', 'Stats', 'AdminStats'],
     }),
   }),
 });

@@ -38,5 +38,7 @@ export function useCourtWeekAvailability({
     weekStart,
     setWeekStart,
     ...queryResult,
+    // RTK Query's data can belong to the previously selected court/week.
+    data: queryResult.currentData,
   };
 }

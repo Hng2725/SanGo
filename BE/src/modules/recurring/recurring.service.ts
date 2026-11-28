@@ -15,7 +15,11 @@ import {
   type RecurringPreviewItemDto,
   type RecurringSeriesDto,
 } from '@sango/shared';
-import { AppEvents, type RecurringEventPayload } from '../../common/events/app-events';
+import {
+  AppEvents,
+  type BookingEventPayload,
+  type RecurringEventPayload,
+} from '../../common/events/app-events';
 import { AppException } from '../../common/exceptions/app.exception';
 import { isPrismaUniqueError } from '../../common/utils/prisma-errors';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -152,6 +156,9 @@ export class RecurringService {
     let result: CreateRecurringResultDto;
     try {
       result = await this.prisma.$transaction(async (tx) => {
+        // Lock before the series INSERT acquires FK locks, matching single booking/hold order.
+        await tx.$queryRaw`SELECT id FROM "User" WHERE id = ${customerId} FOR UPDATE`;
+        await tx.$queryRaw`SELECT id FROM "Court" WHERE id = ${input.courtId} FOR UPDATE`;
         const series = await tx.recurringSeries.create({
           data: {
             customerId,
@@ -250,7 +257,8 @@ export class RecurringService {
     }
 
     const now = new Date();
-    return this.prisma.$transaction(async (tx) => {
+    const cancelledBookingIds: string[] = [];
+    const result = await this.prisma.$transaction(async (tx) => {
       let cancelledCount = 0;
       let skippedCount = 0;
 
@@ -275,6 +283,7 @@ export class RecurringService {
             { now, reason: 'Hủy chuỗi lịch cố định' },
           );
           cancelledCount += 1;
+          cancelledBookingIds.push(b.id);
         } else {
           skippedCount += 1;
         }
@@ -292,6 +301,13 @@ export class RecurringService {
         skippedCount,
       };
     });
+
+    for (const bookingId of cancelledBookingIds) {
+      this.eventEmitter.emit(AppEvents.BookingCancelled, {
+        bookingId,
+      } satisfies BookingEventPayload);
+    }
+    return result;
   }
 
   async confirmSeries(seriesId: string, user: AuthUser): Promise<ConfirmRecurringResultDto> {
@@ -315,7 +331,8 @@ export class RecurringService {
     }
 
     const now = new Date();
-    return this.prisma.$transaction(async (tx) => {
+    const confirmedBookingIds: string[] = [];
+    const result = await this.prisma.$transaction(async (tx) => {
       let confirmedCount = 0;
       for (const b of existing.bookings) {
         if (b.status === 'PENDING' && b.startAt.getTime() > now.getTime()) {
@@ -323,6 +340,7 @@ export class RecurringService {
             now,
           });
           confirmedCount += 1;
+          confirmedBookingIds.push(b.id);
         }
       }
 
@@ -336,5 +354,12 @@ export class RecurringService {
         confirmedCount,
       };
     });
+
+    for (const bookingId of confirmedBookingIds) {
+      this.eventEmitter.emit(AppEvents.BookingConfirmed, {
+        bookingId,
+      } satisfies BookingEventPayload);
+    }
+    return result;
   }
 }

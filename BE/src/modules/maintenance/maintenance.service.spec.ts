@@ -12,8 +12,10 @@ describe('MaintenanceService', () => {
       delete: jest.fn(),
     },
     slotLock: {
-      findMany: jest.fn(),
+      findMany: jest.fn<Promise<unknown[]>, [unknown]>(),
     },
+    $queryRaw: jest.fn(),
+    $transaction: jest.fn(),
   };
 
   const courtsService = {
@@ -24,11 +26,58 @@ describe('MaintenanceService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers().setSystemTime(new Date('2026-11-28T00:00:00Z'));
+    prisma.$transaction.mockImplementation((callback: (tx: typeof prisma) => Promise<unknown>) =>
+      callback(prisma),
+    );
   });
+  afterEach(() => jest.useRealTimers());
 
   describe('create', () => {
-    const futureStart = new Date(Date.now() + 2 * 3600 * 1000).toISOString();
-    const futureEnd = new Date(Date.now() + 4 * 3600 * 1000).toISOString();
+    const futureStart = '2026-12-01T01:00:00.000Z';
+    const futureEnd = '2026-12-01T03:00:00.000Z';
+
+    it('uses a transaction and court lock before checking and creating maintenance', async () => {
+      courtsService.getCourtForOwner.mockResolvedValue({ id: 'c1' });
+      prisma.maintenanceBlock.findFirst.mockResolvedValue(null);
+      prisma.slotLock.findMany.mockResolvedValue([]);
+      prisma.maintenanceBlock.create.mockResolvedValue({
+        id: 'mb1',
+        courtId: 'c1',
+        startAt: new Date(futureStart),
+        endAt: new Date(futureEnd),
+        reason: null,
+        createdAt: new Date(),
+      });
+      const result = await service.create('c1', 'owner1', 'u1', {
+        startAt: futureStart,
+        endAt: futureEnd,
+      });
+      expect(result.id).toBe('mb1');
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(prisma.$queryRaw).toHaveBeenCalledWith(
+        expect.arrayContaining([expect.stringContaining('FOR UPDATE')]),
+        'c1',
+      );
+      expect(prisma.$queryRaw.mock.invocationCallOrder[0]).toBeLessThan(
+        prisma.maintenanceBlock.findFirst.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('checks live holds as well as booking locks for maintenance conflicts', async () => {
+      courtsService.getCourtForOwner.mockResolvedValue({ id: 'c1' });
+      prisma.maintenanceBlock.findFirst.mockResolvedValue(null);
+      prisma.slotLock.findMany.mockResolvedValue([{ booking: null, holdId: 'hold1' }]);
+      await expect(
+        service.create('c1', 'owner1', 'u1', {
+          startAt: futureStart,
+          endAt: futureEnd,
+        }),
+      ).rejects.toMatchObject({ response: { code: 'MAINTENANCE_CONFLICT' } });
+      const query: unknown = prisma.slotLock.findMany.mock.calls[0][0];
+      expect(query).toHaveProperty('where.OR.1.holdId', { not: null });
+      expect(query).toHaveProperty('where.OR.1.expiresAt.gte', new Date());
+    });
 
     it('ném lỗi 403 khi không sở hữu sân con', async () => {
       courtsService.getCourtForOwner.mockRejectedValue({

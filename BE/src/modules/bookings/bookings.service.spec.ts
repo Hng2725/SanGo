@@ -59,6 +59,7 @@ describe('BookingsService', () => {
 
   beforeEach(async () => {
     // Build tx mock
+    txMock.$queryRaw = jest.fn().mockResolvedValue([{ id: 'court-1' }]);
     txMock.court = { findUnique: jest.fn().mockResolvedValue(mockCourtActive) };
     txMock.openingHour = { findMany: jest.fn().mockResolvedValue(mockOpeningHours) };
     txMock.booking = {
@@ -162,6 +163,19 @@ describe('BookingsService', () => {
     await expect(service.createBooking('cust-1', makeInput())).rejects.toThrow(AppException);
   });
 
+  it('rejects a reservation spanning two different operating days', async () => {
+    (txMock.openingHour as { findMany: jest.Mock }).findMany.mockResolvedValue([
+      { ...mockOpeningHours[0], openMinute: 1080, closeMinute: 1560 },
+      { ...mockOpeningHours[0], dayOfWeek: 5, openMinute: 0, closeMinute: 360 },
+    ]);
+    await expect(
+      service.createBooking(
+        'cust-1',
+        makeInput({ startAt: '2030-11-28T16:00:00.000Z', endAt: '2030-11-28T20:00:00.000Z' }),
+      ),
+    ).rejects.toThrow(AppException);
+  });
+
   it('should throw 409 SLOT_ALREADY_BOOKED on P2002 (non-code)', async () => {
     const p2002 = new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
       code: 'P2002',
@@ -211,6 +225,58 @@ describe('BookingsService', () => {
     await expect(service.createBooking('cust-1', makeInput({ holdId: 'hold-1' }))).rejects.toThrow(
       AppException,
     );
+  });
+
+  it.each([0, 1])('rejects a two-slot hold if only %s locks can be converted', async (count) => {
+    const input = makeInput({ holdId: 'hold-1', endAt: '2030-11-28T06:00:00.000Z' });
+    (txMock.bookingHold as { findUnique: jest.Mock }).findUnique.mockResolvedValue({
+      id: 'hold-1',
+      userId: 'cust-1',
+      courtId: 'court-1',
+      startAt: new Date(input.startAt),
+      endAt: new Date(input.endAt),
+      expiresAt: new Date('2031-01-01T00:00:00.000Z'),
+    });
+    (txMock.slotLock as { updateMany: jest.Mock }).updateMany.mockResolvedValue({ count });
+    await expect(service.createBooking('cust-1', input)).rejects.toThrow(AppException);
+  });
+
+  it('rechecks expiration after waiting for reservation locks', async () => {
+    const now = new Date('2026-11-28T04:00:00.000Z');
+    jest.useFakeTimers().setSystemTime(now);
+    try {
+      const input = makeInput({ holdId: 'hold-1' });
+      (txMock.bookingHold as { findUnique: jest.Mock }).findUnique.mockResolvedValue({
+        id: 'hold-1',
+        userId: 'cust-1',
+        courtId: 'court-1',
+        startAt: new Date(input.startAt),
+        endAt: new Date(input.endAt),
+        expiresAt: new Date(now.getTime() + 60000),
+      });
+      (txMock.$queryRaw as jest.Mock).mockImplementation(() => {
+        jest.setSystemTime(new Date(now.getTime() + 120000));
+        return Promise.resolve([]);
+      });
+      (txMock.slotLock as { updateMany: jest.Mock }).updateMany.mockResolvedValue({ count: 1 });
+      await expect(service.createBooking('cust-1', input)).rejects.toThrow(AppException);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('converts the entire valid hold into a booking', async () => {
+    const input = makeInput({ holdId: 'hold-1' });
+    (txMock.bookingHold as { findUnique: jest.Mock }).findUnique.mockResolvedValue({
+      id: 'hold-1',
+      userId: 'cust-1',
+      courtId: 'court-1',
+      startAt: new Date(input.startAt),
+      endAt: new Date(input.endAt),
+      expiresAt: new Date('2031-01-01T00:00:00.000Z'),
+    });
+    (txMock.slotLock as { updateMany: jest.Mock }).updateMany.mockResolvedValue({ count: 1 });
+    expect((await service.createBooking('cust-1', input)).id).toBe('booking-1');
   });
 
   it('should throw 409 HOLD_EXPIRED when hold belongs to another user', async () => {

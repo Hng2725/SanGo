@@ -1,5 +1,4 @@
 import { generateDaySlots, OpeningHourLike } from './slot-generator';
-import { vnDateMinuteToUtc } from '@sango/shared';
 
 /** Helper: tạo OpeningHourLike cho 1 ngày */
 function oh(

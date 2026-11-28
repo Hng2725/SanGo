@@ -34,10 +34,12 @@ describe('BookingDetailPage', () => {
   it('cho phép nhập lý do và gửi yêu cầu hủy', async () => {
     const user = userEvent.setup();
     let payload: unknown;
+    let cancelled = false;
     server.use(
-      http.get('/api/bookings/booking-1', () => HttpResponse.json({ data: booking })),
+      http.get('/api/bookings/booking-1', () => HttpResponse.json({ data: cancelled ? { ...booking, status: 'CANCELLED', allowedActions: [] } : booking })),
       http.patch('/api/bookings/booking-1/cancel', async ({ request }) => {
         payload = await request.json();
+        cancelled = true;
         return HttpResponse.json({ data: { ...booking, status: 'CANCELLED', allowedActions: [] } });
       }),
     );
@@ -49,6 +51,27 @@ describe('BookingDetailPage', () => {
     await user.click(screen.getByRole('button', { name: 'Xác nhận hủy' }));
 
     await waitFor(() => expect(payload).toEqual({ reason: 'Có việc đột xuất' }));
+    expect(await screen.findByText('Đã hủy')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Hủy đơn' })).not.toBeInTheDocument();
+  });
+
+  it('hiển thị đánh giá hiện có, phản hồi và nhãn timeline tiếng Việt', async () => {
+    server.use(http.get('/api/bookings/booking-1', () => HttpResponse.json({ data: {
+      ...booking,
+      status: 'COMPLETED',
+      allowedActions: ['COMPLAIN'],
+      priceBreakdown: [{ ...booking.priceBreakdown[0], label: undefined }],
+      review: { id: 'review-1', rating: 4, comment: 'Sân sạch sẽ', ownerReply: 'Cảm ơn bạn' },
+    } })));
+    renderWithProviders(<BookingDetailPage />, { route: '/me/bookings/booking-1', path: '/me/bookings/:id' });
+    expect(await screen.findByText('Sân sạch sẽ')).toBeInTheDocument();
+    expect(screen.getByText('Cảm ơn bạn')).toBeInTheDocument();
+    expect(screen.getByText(/Đã xác nhận ·/)).toBeInTheDocument();
+    expect(screen.queryByText(/CONFIRMED/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/2026-11-20T11:00:00/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Đánh giá' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Khiếu nại' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Sân Hoa Lư' })).toHaveAttribute('href', '/venues/hoa-lu');
   });
 
   it('hiển thị lỗi khi máy chủ từ chối hủy quá hạn', async () => {

@@ -64,60 +64,67 @@ export class MaintenanceService {
       );
     }
 
-    // Kiểm tra trùng với lịch bảo trì khác
-    const existingMaintenance = await this.prisma.maintenanceBlock.findFirst({
-      where: {
-        courtId,
-        startAt: { lt: endAt },
-        endAt: { gt: startAt },
-      },
+    return this.prisma.$transaction(async (tx) => {
+      // Serialize maintenance with booking/hold validation for this court.
+      await tx.$queryRaw`SELECT id FROM "Court" WHERE id = ${courtId} FOR UPDATE`;
+
+      // Kiểm tra trùng với lịch bảo trì khác
+      const existingMaintenance = await tx.maintenanceBlock.findFirst({
+        where: {
+          courtId,
+          startAt: { lt: endAt },
+          endAt: { gt: startAt },
+        },
+      });
+
+      if (existingMaintenance) {
+        throw new AppException(
+          HttpStatus.CONFLICT,
+          'CONFLICT',
+          'Khung giờ bảo trì bị trùng với một lịch bảo trì khác đã có',
+        );
+      }
+
+      // Kiểm tra trùng với đơn đang hiệu lực (có SlotLock của booking)
+      const conflictedLocks = await tx.slotLock.findMany({
+        where: {
+          courtId,
+          startAt: { gte: startAt, lt: endAt },
+          OR: [{ bookingId: { not: null } }, { holdId: { not: null }, expiresAt: { gte: now } }],
+        },
+        include: {
+          booking: { select: { code: true } },
+        },
+      });
+
+      if (conflictedLocks.length > 0) {
+        const bookingCodes = Array.from(
+          new Set(
+            conflictedLocks
+              .map((lock) => lock.booking?.code)
+              .filter((c): c is string => Boolean(c)),
+          ),
+        );
+        throw new AppException(
+          HttpStatus.CONFLICT,
+          'MAINTENANCE_CONFLICT',
+          'Khung giờ bảo trì trùng với đơn đặt sân hoặc lượt giữ chỗ đang hiệu lực',
+          { bookingCodes },
+        );
+      }
+
+      const created = await tx.maintenanceBlock.create({
+        data: {
+          courtId,
+          startAt,
+          endAt,
+          reason: input.reason,
+          createdById: userId,
+        },
+      });
+
+      return toMaintenanceDto(created);
     });
-
-    if (existingMaintenance) {
-      throw new AppException(
-        HttpStatus.CONFLICT,
-        'CONFLICT',
-        'Khung giờ bảo trì bị trùng với một lịch bảo trì khác đã có',
-      );
-    }
-
-    // Kiểm tra trùng với đơn đang hiệu lực (có SlotLock của booking)
-    const conflictedLocks = await this.prisma.slotLock.findMany({
-      where: {
-        courtId,
-        startAt: { gte: startAt, lt: endAt },
-        bookingId: { not: null },
-      },
-      include: {
-        booking: { select: { code: true } },
-      },
-    });
-
-    if (conflictedLocks.length > 0) {
-      const bookingCodes = Array.from(
-        new Set(
-          conflictedLocks.map((lock) => lock.booking?.code).filter((c): c is string => Boolean(c)),
-        ),
-      );
-      throw new AppException(
-        HttpStatus.CONFLICT,
-        'MAINTENANCE_CONFLICT',
-        'Khung giờ bảo trì trùng với đơn đặt sân đang hiệu lực',
-        { bookingCodes },
-      );
-    }
-
-    const created = await this.prisma.maintenanceBlock.create({
-      data: {
-        courtId,
-        startAt,
-        endAt,
-        reason: input.reason,
-        createdById: userId,
-      },
-    });
-
-    return toMaintenanceDto(created);
   }
 
   async remove(id: string, ownerId: string): Promise<void> {

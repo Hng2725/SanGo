@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
-import { Alert, Button, Card, message, Space, Tabs, Tag, Typography } from 'antd';
+import { Alert, App, Button, Card, Space, Tabs, Tag, Typography } from 'antd';
 import { CompressOutlined, ExpandOutlined } from '@ant-design/icons';
 import {
   MAX_SLOTS_PER_BOOKING,
@@ -13,13 +13,12 @@ import {
 } from '@sango/shared';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { formatCurrency, formatDate } from '@/common/utils/format';
-import {
-  selectCurrentUser,
-  selectIsAuthenticated,
-} from '@/features/auth/model/authSlice';
+import { getErrorMessage } from '@/common/api/errors';
+import { selectCurrentUser, selectIsAuthenticated } from '@/features/auth/model/authSlice';
 import {
   draftStarted,
   holdAttached,
+  draftCleared,
 } from '@/features/booking/model/bookingDraftSlice';
 import { useCreateHoldMutation } from '@/features/booking/api/holdApi';
 import { useCourtWeekAvailability } from '../hooks/useCourtWeekAvailability';
@@ -45,12 +44,9 @@ export interface CourtWeekScheduleProps {
   onBook?: (draftPayload: BookingDraftPayload) => void;
 }
 
-export const CourtWeekSchedule: React.FC<CourtWeekScheduleProps> = ({
-  venue,
-  courts,
-  onBook,
-}) => {
+export const CourtWeekSchedule: React.FC<CourtWeekScheduleProps> = ({ venue, courts, onBook }) => {
   const navigate = useNavigate();
+  const { message } = App.useApp();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const initialDateParam = searchParams.get('date') ?? undefined;
@@ -59,16 +55,8 @@ export const CourtWeekSchedule: React.FC<CourtWeekScheduleProps> = ({
   const user = useAppSelector(selectCurrentUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
 
-  const [selectedCourtId, setSelectedCourtId] = useState<string>(
-    () => courts[0]?.id ?? '',
-  );
+  const [selectedCourtId, setSelectedCourtId] = useState<string>(() => courts[0]?.id ?? '');
   const [isExpanded, setIsExpanded] = useState(false);
-
-  useEffect(() => {
-    if (courts.length > 0 && !courts.some((c) => c.id === selectedCourtId)) {
-      setSelectedCourtId(courts[0].id);
-    }
-  }, [courts, selectedCourtId]);
 
   const currentCourt = useMemo(
     () => courts.find((c) => c.id === selectedCourtId) ?? courts[0],
@@ -80,6 +68,9 @@ export const CourtWeekSchedule: React.FC<CourtWeekScheduleProps> = ({
     setWeekStart,
     data: weekData,
     isFetching,
+    isError,
+    error: availabilityError,
+    refetch,
   } = useCourtWeekAvailability({
     courtId: currentCourt?.id ?? '',
     initialDateStr: initialDateParam,
@@ -105,6 +96,7 @@ export const CourtWeekSchedule: React.FC<CourtWeekScheduleProps> = ({
     clear,
     error: selectionError,
   } = useSlotSelection<AvailabilitySlot>({
+    scope: `${currentCourt?.id ?? ''}|${weekStart}`,
     getKey: (s) => s.startAt,
     isSelectable: (s) => s.status === 'AVAILABLE' || s.status === 'HELD_BY_ME',
     isAdjacent: (a, b) => {
@@ -160,9 +152,7 @@ export const CourtWeekSchedule: React.FC<CourtWeekScheduleProps> = ({
     if (selected.length === 0 || !currentCourt) return;
 
     if (!isAuthenticated) {
-      const redirectUrl = encodeURIComponent(
-        `${location.pathname}${location.search}`,
-      );
+      const redirectUrl = encodeURIComponent(`${location.pathname}${location.search}`);
       navigate(`/login?redirect=${redirectUrl}`);
       return;
     }
@@ -202,9 +192,12 @@ export const CourtWeekSchedule: React.FC<CourtWeekScheduleProps> = ({
       if (apiErr?.status === 409) {
         void message.warning('Khung giờ vừa bị giữ. Vui lòng chọn khung khác.');
         dispatch(availabilityApi.util.invalidateTags(['Availability']));
-        return;
+        clear();
+      } else {
+        void message.error(getErrorMessage(err));
       }
-      // Nếu hold thất bại vì lý do khác, vẫn cho tiếp tục checkout không có hold
+      dispatch(draftCleared());
+      return;
     }
 
     navigate('/booking/checkout');
@@ -235,7 +228,19 @@ export const CourtWeekSchedule: React.FC<CourtWeekScheduleProps> = ({
   }
 
   return (
-    <Card className={`availability-schedule${isExpanded ? ' availability-schedule-expanded' : ''}`} variant="outlined" extra={<Button type="text" icon={isExpanded ? <CompressOutlined /> : <ExpandOutlined />} onClick={() => setIsExpanded((value) => !value)}>{isExpanded ? 'Thu nhỏ' : 'Phóng to lịch'}</Button>}>
+    <Card
+      className={`availability-schedule${isExpanded ? ' availability-schedule-expanded' : ''}`}
+      variant="outlined"
+      extra={
+        <Button
+          type="text"
+          icon={isExpanded ? <CompressOutlined /> : <ExpandOutlined />}
+          onClick={() => setIsExpanded((value) => !value)}
+        >
+          {isExpanded ? 'Thu nhỏ' : 'Phóng to lịch'}
+        </Button>
+      }
+    >
       <Tabs
         activeKey={currentCourt?.id}
         onChange={handleCourtChange}
@@ -253,11 +258,15 @@ export const CourtWeekSchedule: React.FC<CourtWeekScheduleProps> = ({
       />
 
       {selectionError && (
+        <Alert type="warning" showIcon message={selectionError} style={{ marginBottom: 12 }} />
+      )}
+
+      {isError && (
         <Alert
-          type="warning"
+          type="error"
           showIcon
-          message={selectionError}
-          style={{ marginBottom: 12 }}
+          title={getErrorMessage(availabilityError)}
+          action={<Button onClick={() => void refetch()}>Thử lại</Button>}
         />
       )}
 
@@ -268,20 +277,13 @@ export const CourtWeekSchedule: React.FC<CourtWeekScheduleProps> = ({
         isSelected={isSelected}
       >
         <AvailabilityGrid.Toolbar>
-          <AvailabilityGrid.WeekNav
-            weekStart={weekStart}
-            onChange={handleWeekChange}
-          />
+          <AvailabilityGrid.WeekNav weekStart={weekStart} onChange={handleWeekChange} />
           <AvailabilityGrid.Legend />
         </AvailabilityGrid.Toolbar>
 
         <AvailabilityGrid.Table
           renderCell={(slot, { isSelected: cellSelected }) => (
-            <SlotCell
-              slot={slot}
-              selected={cellSelected}
-              onClick={toggle}
-            />
+            <SlotCell slot={slot} selected={cellSelected} onClick={toggle} />
           )}
         />
       </AvailabilityGrid>
@@ -291,7 +293,7 @@ export const CourtWeekSchedule: React.FC<CourtWeekScheduleProps> = ({
         style={{
           marginTop: 16,
           paddingTop: 16,
-          borderTop: '1px solid #f0f0f0',
+          borderTop: '1px solid var(--sg-line)',
           display: 'flex',
           flexWrap: 'wrap',
           justifyContent: 'space-between',
@@ -305,11 +307,7 @@ export const CourtWeekSchedule: React.FC<CourtWeekScheduleProps> = ({
               <Typography.Text strong data-testid="selected-summary-range">
                 Đã chọn: {summaryTimeText}
               </Typography.Text>
-              <Typography.Text
-                strong
-                style={{ fontSize: 16, color: '#0958d9' }}
-                data-testid="selected-summary-total"
-              >
+              <Typography.Text strong style={{ fontSize: 16 }} data-testid="selected-summary-total">
                 Tổng tạm tính: {formatCurrency(totalPrice)}
               </Typography.Text>
             </Space>
@@ -322,21 +320,17 @@ export const CourtWeekSchedule: React.FC<CourtWeekScheduleProps> = ({
         </div>
 
         <Space wrap>
-          {selected.length > 0 && (
-            <Button onClick={clear}>Bỏ chọn</Button>
-          )}
+          {selected.length > 0 && <Button onClick={clear}>Bỏ chọn</Button>}
 
           {isCustomer && selected.length > 0 && (
-            <Button onClick={handleRecurringClick}>
-              Đặt cố định hàng tuần
-            </Button>
+            <Button onClick={handleRecurringClick}>Đặt cố định hàng tuần</Button>
           )}
 
           {!isOwnerOrAdmin && (
             <Button
               type="primary"
               size="large"
-              disabled={selected.length === 0}
+              disabled={selected.length === 0 || isFetching || isError}
               loading={isCreatingHold}
               onClick={handleBookClick}
             >

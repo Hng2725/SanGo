@@ -1,0 +1,31 @@
+.layout {
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr);
+  gap: 24px;
+  min-width: 0;
+}
+
+.sidebar {
+  min-width: 0;
+  border-right: 1px solid var(--sg-line);
+}
+
+.sidebar :global(.ant-menu) {
+  background: transparent;
+  border-inline-end: 0 !important;
+}
+
+.content {
+  min-width: 0;
+}
+
+.menuButton {
+  justify-self: start;
+}
+
+@media (max-width: 991px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+}

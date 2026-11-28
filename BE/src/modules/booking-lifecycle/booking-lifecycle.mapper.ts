@@ -139,7 +139,7 @@ export function toBookingDetailDto(
   const base = toBookingListItemDto(record, actor, now);
   const cancelBeforeHours = record.court.venue.cancelBeforeHours;
   const cancelDeadline =
-    record.status === 'PENDING' || record.status === 'CONFIRMED'
+    record.status === 'CONFIRMED'
       ? getCancelDeadline(record.startAt, cancelBeforeHours).toISOString()
       : null;
 

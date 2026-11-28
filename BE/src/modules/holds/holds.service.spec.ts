@@ -34,7 +34,11 @@ describe('HoldsService', () => {
   const txMock: Record<string, unknown> = {};
 
   beforeEach(async () => {
+    txMock.$queryRaw = jest.fn().mockResolvedValue([]);
     txMock.bookingHold = {
+      findUnique: jest.fn(),
+      delete: jest.fn().mockResolvedValue(undefined),
+      findMany: jest.fn().mockResolvedValue([]),
       deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
       create: jest.fn().mockResolvedValue({
         id: 'hold-1',
@@ -61,11 +65,7 @@ describe('HoldsService', () => {
       $transaction: jest
         .fn()
         .mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => fn(txMock)),
-      bookingHold: {
-        findUnique: jest.fn(),
-        delete: jest.fn().mockResolvedValue(undefined),
-        deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
-      },
+      bookingHold: txMock.bookingHold,
     };
 
     const moduleRef = await Test.createTestingModule({

@@ -337,6 +337,10 @@ export function renderWithProviders(ui: ReactElement, opts?: { preloadedState?: 
 
 ## 6. Checklist Definition of Done của Hưng
 
+- [x] 28/11/2026: hoàn thiện tích hợp auth/guard/cache, duyệt chủ sân, occupancy và mail chuỗi; kiểm tra SMTP Mailpit local. Kết quả tổng và phần H7 còn cần môi trường thật: `docs/bao-cao/KIEM_THU_TICH_HOP_2026-11-28.md`.
+
+- [x] 28/11/2026: giữ layout/menu khi lỗi route và 404 trong khu chủ sân, quản trị, tài khoản; thêm điều hướng trái cho trang lỗi công khai (drawer mobile). Đã có test hồi quy, Chrome desktop/375px và rà soát mã; 282 test và build đạt. Lint file sửa không có lỗi; lint tổng còn 55 lỗi BE có sẵn.
+
 - [ ] GĐ0 đạt mục tiêu nghiệm thu (mục 2) và đã merge `main`, thông báo nhóm.
 - [ ] H1 – H7 hoàn thành, test xanh, coverage phần của mình ≥ 50%.
 - [ ] Không `any` không chú thích; responsive mobile các trang của mình.

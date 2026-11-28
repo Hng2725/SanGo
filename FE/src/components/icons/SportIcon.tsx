@@ -57,7 +57,11 @@ export function SportIcon({ sport, size = 24, decorative = false }: SportIconPro
       {sport === 'VOLLEYBALL' && (
         <>
           <circle cx="12" cy="12" r="9" />
-          <path d="M12 3c-3 3-4 6-3 9m9-7c-4 0-7 2-9 7m12 0c-4-2-8-2-12 0m7 8c1-4 0-7-3-9m-8 6c2-2 5-3 8-3" />
+          {[0, 120, 240].map((angle) => (
+            <g key={angle} transform={`rotate(${angle} 12 12)`}>
+              <path d="M12 12C9.2 9.3 9.1 5.9 10.44 3.14M13.85 3.19C12.6 5.7 13.1 8.7 16.1 10.9M17.2 4.65C15.5 6.7 16.1 10 19 13.4" />
+            </g>
+          ))}
         </>
       )}
     </svg>

@@ -1,6 +1,20 @@
 import { buildWeeklyOccurrences } from './recurring-dates';
 
 describe('recurring-dates', () => {
+  it('giữ ngày hoạt động khi bắt đầu sau nửa đêm ở phút lớn hơn 1440', () => {
+    expect(buildWeeklyOccurrences('2026-11-30', 1500, 2, 2)).toEqual([
+      {
+        date: '2026-11-30',
+        startAt: new Date('2026-11-30T18:00:00Z'),
+        endAt: new Date('2026-11-30T20:00:00Z'),
+      },
+      {
+        date: '2026-12-07',
+        startAt: new Date('2026-12-07T18:00:00Z'),
+        endAt: new Date('2026-12-07T20:00:00Z'),
+      },
+    ]);
+  });
   it('tạo đúng số tuần qua tháng và tính đúng ca qua nửa đêm', () => {
     // 2026-11-26 23:00 VN (1380) + 2 slots => 01:00 (+1)
     const occurrences = buildWeeklyOccurrences('2026-11-26', 1380, 2, 3);

@@ -19,14 +19,19 @@ import { ArrowLeftOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/ico
 import dayjs from 'dayjs';
 import {
   formatMinute,
+  createMaintenanceSchema,
   isApiErrorBody,
+  toVnParts,
   vnDateMinuteToUtc,
   type MaintenanceDto,
 } from '@sango/shared';
 import { useDocumentTitle } from '@/common/hooks/useDocumentTitle';
+import { getErrorMessage } from '@/common/api/errors';
+import { formatDateTime } from '@/common/utils/format';
 import { FullPageSpinner } from '@/components/feedback/FullPageSpinner';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState } from '@/components/feedback/EmptyState';
+import { ErrorState } from '@/components/feedback/ErrorState';
 import {
   useCreateCourtMaintenanceMutation,
   useDeleteCourtMaintenanceMutation,
@@ -43,19 +48,31 @@ export const CourtMaintenancePage: React.FC = () => {
   const { message } = App.useApp();
   useDocumentTitle('Lịch bảo trì sân – SanGo');
 
-  const { data: blocks = [], isLoading, refetch } = useListCourtMaintenanceQuery(courtId);
+  const { data: blocks = [], isLoading, isError, refetch } = useListCourtMaintenanceQuery(courtId);
   const [createMaintenance, { isLoading: isCreating }] = useCreateCourtMaintenanceMutation();
   const [deleteMaintenance, { isLoading: isDeleting }] = useDeleteCourtMaintenanceMutation();
 
-  const [date, setDate] = useState<dayjs.Dayjs | null>(dayjs().add(1, 'day'));
+  const [date, setDate] = useState<dayjs.Dayjs | null>(() =>
+    dayjs(toVnParts(new Date()).dateStr).add(1, 'day'),
+  );
   const [startMinute, setStartMinute] = useState<number>(480); // 08:00
   const [endMinute, setEndMinute] = useState<number>(720); // 12:00
   const [isNextDayEnd, setIsNextDayEnd] = useState<boolean>(false);
   const [reason, setReason] = useState<string>('');
   const [conflictedCodes, setConflictedCodes] = useState<string[] | null>(null);
+  const [conflictMessage, setConflictMessage] = useState('');
 
   if (isLoading) {
     return <FullPageSpinner />;
+  }
+  if (isError) {
+    return (
+      <ErrorState
+        title="Không tải được lịch bảo trì"
+        description="Hãy thử tải lại danh sách trước khi tạo lịch mới."
+        actions={<Button onClick={() => refetch()}>Thử lại</Button>}
+      />
+    );
   }
 
   const handleCreate = async () => {
@@ -74,29 +91,44 @@ export const CourtMaintenancePage: React.FC = () => {
 
     const startAt = vnDateMinuteToUtc(dateStr, startMinute).toISOString();
     const endAt = vnDateMinuteToUtc(dateStr, finalEndMinute).toISOString();
+    const parsed = createMaintenanceSchema.safeParse({
+      startAt,
+      endAt,
+      reason: reason.trim() || undefined,
+    });
+    if (!parsed.success) {
+      message.error(parsed.error.issues[0].message);
+      return;
+    }
 
     setConflictedCodes(null);
     try {
       await createMaintenance({
         courtId,
-        body: {
-          startAt,
-          endAt,
-          reason: reason.trim() || undefined,
-        },
+        body: parsed.data,
       }).unwrap();
 
       message.success('Đã tạo lịch bảo trì thành công');
       setReason('');
-      refetch();
     } catch (err: unknown) {
-      if (isApiErrorBody(err) && err.code === 'MAINTENANCE_CONFLICT') {
-        const details = err.details as { bookingCodes?: string[] } | undefined;
-        setConflictedCodes(details?.bookingCodes ?? []);
-      } else if (isApiErrorBody(err)) {
-        message.error(err.message);
+      const body = isApiErrorBody(err)
+        ? err
+        : typeof err === 'object' && err !== null && 'data' in err && isApiErrorBody(err.data)
+          ? err.data
+          : undefined;
+      if (body?.code === 'MAINTENANCE_CONFLICT') {
+        const details = body.details;
+        const bookingCodes =
+          typeof details === 'object' &&
+          details !== null &&
+          'bookingCodes' in details &&
+          Array.isArray(details.bookingCodes)
+            ? details.bookingCodes.filter((code): code is string => typeof code === 'string')
+            : [];
+        setConflictedCodes(bookingCodes);
+        setConflictMessage(body.message);
       } else {
-        message.error('Không thể tạo lịch bảo trì. Vui lòng thử lại.');
+        message.error(getErrorMessage(err));
       }
     }
   };
@@ -105,9 +137,8 @@ export const CourtMaintenancePage: React.FC = () => {
     try {
       await deleteMaintenance(id).unwrap();
       message.success('Đã xóa lịch bảo trì');
-      refetch();
-    } catch {
-      message.error('Không thể xóa lịch bảo trì');
+    } catch (err: unknown) {
+      message.error(getErrorMessage(err));
     }
   };
 
@@ -115,12 +146,12 @@ export const CourtMaintenancePage: React.FC = () => {
     {
       title: 'Thời gian bắt đầu',
       dataIndex: 'startAt',
-      render: (val: string) => dayjs(val).format('HH:mm DD/MM/YYYY'),
+      render: (val: string) => formatDateTime(val),
     },
     {
       title: 'Thời gian kết thúc',
       dataIndex: 'endAt',
-      render: (val: string) => dayjs(val).format('HH:mm DD/MM/YYYY'),
+      render: (val: string) => formatDateTime(val),
     },
     {
       title: 'Lý do',
@@ -163,15 +194,21 @@ export const CourtMaintenancePage: React.FC = () => {
       <Row gutter={[24, 24]}>
         <Col xs={24} md={10}>
           <Card title="Khóa khung giờ mới" variant="borderless">
-            {conflictedCodes && conflictedCodes.length > 0 && (
+            {conflictedCodes !== null && (
               <Alert
                 type="error"
                 showIcon
                 style={{ marginBottom: 16 }}
-                message="Trùng với đơn đặt sân đang hiệu lực"
+                title={conflictMessage}
                 description={
                   <div>
-                    Các mã đơn bị trùng: <strong>{conflictedCodes.join(', ')}</strong>.
+                    {conflictedCodes.length > 0 ? (
+                      <>
+                        Các mã đơn bị trùng: <strong>{conflictedCodes.join(', ')}</strong>.{' '}
+                      </>
+                    ) : (
+                      'Có khách đang giữ chỗ trong khung giờ này. '
+                    )}
                     Vui lòng liên hệ khách hàng hoặc chọn khung giờ khác.
                   </div>
                 }
@@ -185,7 +222,9 @@ export const CourtMaintenancePage: React.FC = () => {
                   onChange={(d) => setDate(d)}
                   format="DD/MM/YYYY"
                   style={{ width: '100%' }}
-                  disabledDate={(current) => current && current < dayjs().startOf('day')}
+                  disabledDate={(current) =>
+                    current && current < dayjs(toVnParts(new Date()).dateStr)
+                  }
                 />
               </Form.Item>
 
@@ -258,6 +297,7 @@ export const CourtMaintenancePage: React.FC = () => {
                 columns={columns}
                 rowKey="id"
                 pagination={false}
+                scroll={{ x: 480 }}
                 size="middle"
               />
             )}

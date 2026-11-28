@@ -14,21 +14,19 @@ describe('AuthService', () => {
 
   it('registers owners as pending and excludes password from response', async () => {
     prisma.user.findUnique.mockResolvedValue(null);
-    prisma.user.create.mockImplementation(({ data }) =>
-      Promise.resolve({
-        id: 'u1',
-        email: data.email,
-        fullName: data.fullName,
-        phone: null,
-        passwordHash: 'hash',
-        role: 'OWNER',
-        status: 'ACTIVE',
-        ownerStatus: 'PENDING',
-        ownerNote: null,
-        createdAt: new Date('2026-11-20T00:00:00Z'),
-        updatedAt: new Date('2026-11-20T00:00:00Z'),
-      }),
-    );
+    prisma.user.create.mockResolvedValue({
+      id: 'u1',
+      email: 'owner@sango.vn',
+      fullName: 'Owner One',
+      phone: null,
+      passwordHash: 'hash',
+      role: 'OWNER',
+      status: 'ACTIVE',
+      ownerStatus: 'PENDING',
+      ownerNote: null,
+      createdAt: new Date('2026-11-20T00:00:00Z'),
+      updatedAt: new Date('2026-11-20T00:00:00Z'),
+    });
     const result = await service.register({
       email: 'OWNER@SANGO.VN',
       fullName: 'Owner One',
@@ -39,6 +37,12 @@ describe('AuthService', () => {
     expect(result.user.email).toBe('owner@sango.vn');
     expect(result.user.ownerStatus).toBe('PENDING');
     expect(result.user).not.toHaveProperty('passwordHash');
+    expect(prisma.user.create.mock.calls[0]?.[0].data).toMatchObject({
+      email: 'owner@sango.vn',
+      fullName: 'Owner One',
+      role: 'OWNER',
+      ownerStatus: 'PENDING',
+    });
   });
   it('rejects duplicate emails', async () => {
     prisma.user.findUnique.mockResolvedValue({ id: 'u1' } as never);

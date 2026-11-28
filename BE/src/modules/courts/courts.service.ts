@@ -111,19 +111,21 @@ export class CourtsService {
   async remove(courtId: string, ownerId: string): Promise<void> {
     await this.getCourtForOwner(courtId, ownerId);
 
-    const bookingCount = await this.prisma.booking.count({
-      where: { courtId },
+    await this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM "Court" WHERE id = ${courtId} FOR UPDATE`;
+      const [bookingCount, holdCount, recurringCount] = await Promise.all([
+        tx.booking.count({ where: { courtId } }),
+        tx.bookingHold.count({ where: { courtId } }),
+        tx.recurringSeries.count({ where: { courtId } }),
+      ]);
+      if (bookingCount > 0 || holdCount > 0 || recurringCount > 0) {
+        await tx.court.update({
+          where: { id: courtId },
+          data: { isActive: false },
+        });
+      } else {
+        await tx.court.delete({ where: { id: courtId } });
+      }
     });
-
-    if (bookingCount > 0) {
-      await this.prisma.court.update({
-        where: { id: courtId },
-        data: { isActive: false },
-      });
-    } else {
-      await this.prisma.court.delete({
-        where: { id: courtId },
-      });
-    }
   }
 }

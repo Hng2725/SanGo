@@ -29,6 +29,8 @@ import {
 } from '@sango/shared';
 import { formatCurrency } from '@/common/utils/format';
 import { buildPriceTable } from '../utils/buildPriceTable';
+import { applyServerErrors } from '../utils/applyServerErrors';
+import styles from './PricingForm.module.css';
 
 export interface PricingFormProps {
   initialValues?: PricingConfigInput;
@@ -50,6 +52,7 @@ export const PricingForm: React.FC<PricingFormProps> = ({
   const {
     control,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<PricingConfigInput>({
     resolver: zodResolver(pricingConfigSchema),
@@ -79,6 +82,14 @@ export const PricingForm: React.FC<PricingFormProps> = ({
       pricePerHour: (watchedBase || 150_000) + 50_000,
       label: 'Giờ vàng',
     });
+  };
+
+  const submit = async (values: PricingConfigInput) => {
+    try {
+      await onSubmit(values);
+    } catch (error: unknown) {
+      applyServerErrors(setError, error);
+    }
   };
 
   const renderRuleRow = (index: number) => {
@@ -194,7 +205,7 @@ export const PricingForm: React.FC<PricingFormProps> = ({
   };
 
   return (
-    <Form layout="vertical" component="form" onSubmitCapture={handleSubmit(onSubmit)}>
+    <Form className={styles.form} layout="vertical" component="form" onSubmitCapture={handleSubmit(submit)}>
       <Row gutter={[24, 24]}>
         <Col xs={24} lg={15}>
           <Card title="Cấu hình bảng giá" variant="borderless">
@@ -209,7 +220,7 @@ export const PricingForm: React.FC<PricingFormProps> = ({
                 control={control}
                 name="basePricePerHour"
                 render={({ field }) => (
-                  <Space.Compact style={{ width: 280 }}>
+                  <Space.Compact className={styles.basePrice}>
                     <InputNumber
                       {...field}
                       step={10_000}
@@ -231,18 +242,11 @@ export const PricingForm: React.FC<PricingFormProps> = ({
 
             {/* Ngày thường */}
             <div style={{ marginBottom: 24 }}>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: 12,
-                }}
-              >
+              <div className={styles.ruleHeader}>
                 <Typography.Title level={5} style={{ margin: 0 }}>
                   Quy tắc Ngày thường (Thứ 2 – Thứ 6)
                 </Typography.Title>
-                <Space>
+                <Space wrap className={styles.ruleActions}>
                   <Button
                     size="small"
                     icon={<ThunderboltOutlined />}
@@ -286,14 +290,7 @@ export const PricingForm: React.FC<PricingFormProps> = ({
 
             {/* Cuối tuần */}
             <div style={{ marginBottom: 24 }}>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: 12,
-                }}
-              >
+              <div className={styles.ruleHeader}>
                 <Typography.Title level={5} style={{ margin: 0 }}>
                   Quy tắc Cuối tuần (Thứ 7 & Chủ nhật)
                 </Typography.Title>
@@ -346,7 +343,7 @@ export const PricingForm: React.FC<PricingFormProps> = ({
               rowKey="minute"
               size="small"
               pagination={false}
-              scroll={{ y: 520 }}
+              scroll={{ x: 360, y: 520 }}
               columns={[
                 {
                   title: 'Khung giờ',

@@ -1,5 +1,5 @@
 import { Alert, App, Button, Form } from 'antd';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createReviewSchema, type CreateReviewInput } from '@sango/shared';
 import { RHFTextArea } from '@/components/forms/RHFFields';
@@ -13,7 +13,7 @@ export function ReviewForm({ bookingId, onSuccess }: ReviewFormProps) {
   const { message } = App.useApp();
   const form = useForm<CreateReviewInput>({ resolver: zodResolver(createReviewSchema), defaultValues: { bookingId, rating: 5, comment: '' } });
   const [create, state] = useCreateReviewMutation();
-  const rating = form.watch('rating');
+  const rating = useWatch({ control: form.control, name: 'rating' });
   const submit = form.handleSubmit(async (input) => {
     try { await create(input).unwrap(); message.success('Đã gửi đánh giá'); onSuccess?.(); form.reset({ bookingId, rating: 5, comment: '' }); }
     catch { /* API error is rendered below. */ }

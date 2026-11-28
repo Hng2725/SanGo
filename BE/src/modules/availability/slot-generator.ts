@@ -1,5 +1,5 @@
 import { SLOT_MINUTES, VN_UTC_OFFSET_MINUTES } from '@sango/shared';
-import { vnDateMinuteToUtc, addDaysToDateStr } from '@sango/shared';
+import { vnDateMinuteToUtc } from '@sango/shared';
 
 export interface OpeningHourLike {
   dayOfWeek: number;
